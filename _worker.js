@@ -45,12 +45,56 @@ function newUrl(urlStr) {
 	}
 }
 
+function isUUID(uuid) {
+	// 定义一个正则表达式来匹配 UUID 格式
+	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+	
+	// 使用正则表达式测试 UUID 字符串
+	return uuidRegex.test(uuid);
+}
+
 export default {
 	async fetch(request, env, ctx) {
 		const getReqHeader = (key) => request.headers.get(key); // 获取请求头
 
 		let url = new URL(request.url); // 解析请求URL
 		workers_url = `https://${url.hostname}`;
+		const pathname = url.pathname;
+		const isUuid = isUUID(pathname.split('/')[1]);
+		
+		const conditions = [
+			isUuid,
+			pathname.includes('/_'),
+			pathname.includes('/r'),
+			pathname.includes('/v2/user'),
+			pathname.includes('/v2/orgs'),
+			pathname.includes('/v2/categories'),
+			pathname.includes('/v2/feature-flags'),
+			pathname.includes('search'),
+			pathname.includes('source'),
+			pathname === '/',
+			pathname === '/favicon.ico',
+			pathname === '/auth/profile',
+		];
+		
+		if (conditions.some(condition => condition)) {
+			const newUrl = new URL("https://hub.docker.com" + pathname + url.search);
+
+			// 复制原始请求的标头
+			const headers = new Headers(request.headers);
+
+			// 确保 Host 头部被替换为 hub.docker.com
+			headers.set('Host', 'hub.docker.com');
+
+			const newRequest = new Request(newUrl, {
+					method: request.method,
+					headers: headers,
+					body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.blob() : null,
+					redirect: 'follow'
+			});
+
+			return fetch(newRequest);
+		}
 
 		// 修改包含 %2F 和 %3A 的请求
 		if (!/%2F/.test(url.search) && /%3A/.test(url.toString())) {
