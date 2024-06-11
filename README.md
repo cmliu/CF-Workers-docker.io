@@ -31,5 +31,5 @@
 
 # 鸣谢
 
-感谢 [V2ex](https://global.v2ex.com/t/1007922) 的网友提供源码。本项目的开发得益于他们的贡献。
+[muzihuaner](https://github.com/muzihuaner)、[V2ex网友](https://global.v2ex.com/t/1007922) 、[ChatGPT](https://chatgpt.com/)
 
