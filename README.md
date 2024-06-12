@@ -32,6 +32,13 @@ sudo systemctl daemon-reload
 sudo systemctl restart docker
 ```
 
+## 变量说明
+| 变量名 | 示例 | 必填 | 备注 | 
+|--|--|--|--|
+| URL302 | https://t.me/CMLiussss |❌| 主页302跳转 |
+| URL | https://www.baidu.com/ |❌| 主页伪装(设为`nginx`则伪装为nginx默认页面) |
+
+
 # 第三方Docker官方镜像服务
 
 ### 白嫖哥镜像服务 https://t.me/bestcfipas/1900
