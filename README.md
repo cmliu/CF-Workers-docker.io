@@ -43,18 +43,18 @@ sudo systemctl restart docker
 
 ### 白嫖哥镜像服务 https://t.me/bestcfipas/1900
 ```shell
-docker.registry.cyou 
+docker.registry.cyou
 docker-cf.registry.cyou
 ```
 
 ### Free镜像服务 https://t.me/zero_free/80
 ```shell
-dockercf.jsdelivr.fyi 
+dockercf.jsdelivr.fyi
 docker.jsdelivr.fyi
 dockertest.jsdelivr.fyi
 ```
 
 # 鸣谢
 
-[muzihuaner](https://github.com/muzihuaner)、[V2ex网友](https://global.v2ex.com/t/1007922) 、[ChatGPT](https://chatgpt.com/)、[白嫖哥](https://t.me/bestcfipas/1900)、[Free镜像服务](https://t.me/zero_free/80)
+[muzihuaner](https://github.com/muzihuaner)、[V2ex网友](https://global.v2ex.com/t/1007922)、[ciiiii](https://github.com/ciiiii/cloudflare-docker-proxy)、[ChatGPT](https://chatgpt.com/)、[白嫖哥](https://t.me/bestcfipas/1900)、[Free镜像服务](https://t.me/zero_free/80)
 

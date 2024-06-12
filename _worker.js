@@ -1,16 +1,31 @@
-'use strict'
+// _worker.js
 
 // Docker镜像仓库主机地址
-const hub_host = 'registry-1.docker.io'
+let hub_host = 'registry-1.docker.io'
 // Docker认证服务器地址
 const auth_url = 'https://auth.docker.io'
 // 自定义的工作服务器地址
 let workers_url = 'https://你的域名'
 
-/**
- * 静态文件 (404.html, sw.js, conf.js)
- * ref: https://global.v2ex.com/t/1007922
- */
+// 根据主机名选择对应的上游地址
+function routeByHosts(host) {
+		// 定义路由表
+	const routes = {
+		// 生产环境
+		"quay": "quay.io",
+		"gcr": "gcr.io",
+		"k8s-gcr": "k8s.gcr.io",
+		"k8s": "registry.k8s.io",
+		"ghcr": "ghcr.io",
+		"cloudsmith": "docker.cloudsmith.io",
+		
+		// 测试环境
+		"test": "registry-1.docker.io",
+	};
+
+	if (host in routes) return [ routes[host], false ];
+	else return [ hub_host, true ];
+}
 
 /** @type {RequestInit} */
 const PREFLIGHT_INIT = {
@@ -91,7 +106,13 @@ export default {
 		let url = new URL(request.url); // 解析请求URL
 		workers_url = `https://${url.hostname}`;
 		const pathname = url.pathname;
-		const isUuid = isUUID(pathname.split('/')[1]);
+		const hostname = url.searchParams.get('hubhost') || url.hostname; 
+		const hostTop = hostname.split('.')[0];// 获取主机名的第一部分
+		const checkHost = routeByHosts(hostTop);
+		hub_host = checkHost[0]; // 获取上游地址
+		const fakePage = checkHost[1];
+		console.log(`域名头部: ${hostTop}\n反代地址: ${hub_host}\n伪装首页: ${fakePage}`);
+		const isUuid = isUUID(pathname.split('/')[1].split('/')[0]);
 		
 		const conditions = [
 			isUuid,
@@ -109,7 +130,7 @@ export default {
 			pathname === '/auth/profile',
 		];
 
-		if (conditions.some(condition => condition)) {
+		if (conditions.some(condition => condition) && (fakePage === true || hostTop == 'docker')) {
 			if (env.URL302){
 				return Response.redirect(env.URL302, 302);
 			} else if (env.URL){
@@ -149,7 +170,7 @@ export default {
 		}
 
 		// 处理token请求
-		if (url.pathname === '/token') {
+		if (url.pathname.includes('/token')) {
 			let token_parameter = {
 				headers: {
 					'Host': 'auth.docker.io',
@@ -221,6 +242,7 @@ export default {
 		return response;
 	}
 };
+
 /**
  * 处理HTTP请求
  * @param {Request} req 请求对象
