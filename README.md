@@ -43,13 +43,13 @@ sudo systemctl restart docker
 
 ### 白嫖哥镜像服务 https://t.me/bestcfipas/1900
 ```shell
-docker.registry.cyou 
+docker.registry.cyou
 docker-cf.registry.cyou
 ```
 
 ### Free镜像服务 https://t.me/zero_free/80
 ```shell
-dockercf.jsdelivr.fyi 
+dockercf.jsdelivr.fyi
 docker.jsdelivr.fyi
 dockertest.jsdelivr.fyi
 ```
