@@ -99,6 +99,7 @@ export default {
 			pathname.includes('/r'),
 			pathname.includes('/v2/user'),
 			pathname.includes('/v2/orgs'),
+			pathname.includes('/v2/_catalog'),
 			pathname.includes('/v2/categories'),
 			pathname.includes('/v2/feature-flags'),
 			pathname.includes('search'),
@@ -122,13 +123,13 @@ export default {
 				} else return fetch(new Request(env.URL, request));
 			}
 			
-			const newUrl = new URL("https://hub.docker.com" + pathname + url.search);
+			const newUrl = new URL("https://registry.hub.docker.com" + pathname + url.search);
 
 			// 复制原始请求的标头
 			const headers = new Headers(request.headers);
 
 			// 确保 Host 头部被替换为 hub.docker.com
-			headers.set('Host', 'hub.docker.com');
+			headers.set('Host', 'registry.hub.docker.com');
 
 			const newRequest = new Request(newUrl, {
 					method: request.method,
