@@ -1,11 +1,30 @@
 'use strict'
 
 // Docker镜像仓库主机地址
-const hub_host = 'registry-1.docker.io'
+let hub_host = 'registry-1.docker.io'
 // Docker认证服务器地址
 const auth_url = 'https://auth.docker.io'
 // 自定义的工作服务器地址
 let workers_url = 'https://你的域名'
+
+// 根据主机名选择对应的上游地址
+function routeByHosts(host) {
+	// 定义路由表
+	const routes = {
+		// 生产环境
+		"quay": "quay.io",
+		"gcr": "gcr.io",
+		"k8s-gcr": "k8s.gcr.io",
+		"k8s": "registry.k8s.io",
+		"ghcr": "ghcr.io",
+		"cloudsmith": "docker.cloudsmith.io",
+		
+		// 测试环境
+		"test": 'registry-1.docker.io',
+	};
+	if (host in routes) return routes[host];
+	else return 'registry-1.docker.io'; // 如果没有匹配到，返回Docker Hub
+}
 
 /**
  * 静态文件 (404.html, sw.js, conf.js)
@@ -89,6 +108,9 @@ export default {
 		const getReqHeader = (key) => request.headers.get(key); // 获取请求头
 
 		let url = new URL(request.url); // 解析请求URL
+		const hostName = url.hostname.split('.')[0]; // 获取主机名的第一部分
+		hub_host = routeByHosts(hostName);
+		console.log(`域名头部: ${hostName}\n反代地址: ${hub_host}`);
 		workers_url = `https://${url.hostname}`;
 		const pathname = url.pathname;
 		const isUuid = isUUID(pathname.split('/')[1]);
@@ -149,7 +171,7 @@ export default {
 		}
 
 		// 处理token请求
-		if (url.pathname === '/token') {
+		if (url.pathname.includes('/token')) {
 			let token_parameter = {
 				headers: {
 					'Host': 'auth.docker.io',
