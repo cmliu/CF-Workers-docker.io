@@ -52,7 +52,6 @@ sudo systemctl restart docker
 
 | DockerHub 镜像仓库 | 镜像加地址 |
 | ------------------ | ----------- |
-| [cmliu/CF-Workers-docker.io](https://docker.fxxk.dedyn.io) | `https://docker.fxxk.dedyn.io` |
 | [bestcfipas镜像服务](https://t.me/bestcfipas/1900) | `https://docker.registry.cyou` |
 |  | `https://docker-cf.registry.cyou` |
 | [zero_free镜像服务](https://t.me/zero_free/80) | `https://docker.jsdelivr.fyi` |
