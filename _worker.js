@@ -5,7 +5,7 @@ let hub_host = 'registry-1.docker.io'
 // Docker认证服务器地址
 const auth_url = 'https://auth.docker.io'
 // 自定义的工作服务器地址
-let workers_url = 'https://docker.petemicroan.workers.dev'
+let workers_url = '$URL'
 
 let 屏蔽爬虫UA = ['netcraft'];
 
