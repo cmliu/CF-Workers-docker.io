@@ -1,17 +1,17 @@
 // _worker.js
 
 // Docker镜像仓库主机地址
-let hub_host = 'registry-1.docker.io'
+let hub_host = 'registry-1.docker.io';
 // Docker认证服务器地址
-const auth_url = 'https://auth.docker.io'
+const auth_url = 'https://auth.docker.io';
 // 自定义的工作服务器地址
-let workers_url = 'https://你的域名'
+let workers_url = 'https://xxx/';
 
 let 屏蔽爬虫UA = ['netcraft'];
 
 // 根据主机名选择对应的上游地址
 function routeByHosts(host) {
-		// 定义路由表
+	// 定义路由表
 	const routes = {
 		// 生产环境
 		"quay": "quay.io",
@@ -99,7 +99,7 @@ async function nginx() {
 	</body>
 	</html>
 	`
-	return text ;
+	return text;
 }
 
 export default {
@@ -112,23 +112,38 @@ export default {
 		if (env.UA) 屏蔽爬虫UA = 屏蔽爬虫UA.concat(await ADD(env.UA));
 		workers_url = `https://${url.hostname}`;
 		const pathname = url.pathname;
-		const hostname = url.searchParams.get('hubhost') || url.hostname; 
-		const hostTop = hostname.split('.')[0];// 获取主机名的第一部分
-		const checkHost = routeByHosts(hostTop);
-		hub_host = checkHost[0]; // 获取上游地址
-		const fakePage = checkHost[1];
+
+		// 获取请求参数中的 ns
+		const ns = url.searchParams.get('ns'); 
+		const hostname = url.searchParams.get('hubhost') || url.hostname;
+		const hostTop = hostname.split('.')[0]; // 获取主机名的第一部分
+
+		let checkHost; // 在这里定义 checkHost 变量
+		// 如果存在 ns 参数，优先使用它来确定 hub_host
+		if (ns) {
+			if (ns === 'docker.io') {
+				hub_host = 'registry-1.docker.io'; // 设置上游地址为 registry-1.docker.io
+			} else {
+				hub_host = ns; // 直接使用 ns 作为 hub_host
+			}
+		} else {
+			checkHost = routeByHosts(hostTop);
+			hub_host = checkHost[0]; // 获取上游地址
+		}
+
+		const fakePage = checkHost ? checkHost[1] : false; // 确保 fakePage 不为 undefined
 		console.log(`域名头部: ${hostTop}\n反代地址: ${hub_host}\n伪装首页: ${fakePage}`);
 		const isUuid = isUUID(pathname.split('/')[1].split('/')[0]);
-		
-		if (屏蔽爬虫UA.some(fxxk => userAgent.includes(fxxk)) && 屏蔽爬虫UA.length > 0){
-			//首页改成一个nginx伪装页
+
+		if (屏蔽爬虫UA.some(fxxk => userAgent.includes(fxxk)) && 屏蔽爬虫UA.length > 0) {
+			// 首页改成一个nginx伪装页
 			return new Response(await nginx(), {
 				headers: {
 					'Content-Type': 'text/html; charset=UTF-8',
 				},
 			});
 		}
-		
+
 		const conditions = [
 			isUuid,
 			pathname.includes('/_'),
@@ -146,10 +161,10 @@ export default {
 		];
 
 		if (conditions.some(condition => condition) && (fakePage === true || hostTop == 'docker')) {
-			if (env.URL302){
+			if (env.URL302) {
 				return Response.redirect(env.URL302, 302);
-			} else if (env.URL){
-				if (env.URL.toLowerCase() == 'nginx'){
+			} else if (env.URL) {
+				if (env.URL.toLowerCase() == 'nginx') {
 					//首页改成一个nginx伪装页
 					return new Response(await nginx(), {
 						headers: {
@@ -181,7 +196,7 @@ export default {
 		if (!/%2F/.test(url.search) && /%3A/.test(url.toString())) {
 			let modifiedUrl = url.toString().replace(/%3A(?=.*?&)/, '%3Alibrary%2F');
 			url = new URL(modifiedUrl);
-			console.log(`handle_url: ${url}`)
+			console.log(`handle_url: ${url}`);
 		}
 
 		// 处理token请求
@@ -197,14 +212,14 @@ export default {
 					'Cache-Control': 'max-age=0'
 				}
 			};
-			let token_url = auth_url + url.pathname + url.search
-			return fetch(new Request(token_url, request), token_parameter)
+			let token_url = auth_url + url.pathname + url.search;
+			return fetch(new Request(token_url, request), token_parameter);
 		}
 
 		// 修改 /v2/ 请求路径
-		if (/^\/v2\/[^/]+\/[^/]+\/[^/]+$/.test(url.pathname) && !/^\/v2\/library/.test(url.pathname)) {
+		if (ns === 'docker.io' && /^\/v2\/[^/]+\/[^/]+\/[^/]+$/.test(url.pathname) && !/^\/v2\/library/.test(url.pathname)) {
 			url.pathname = url.pathname.replace(/\/v2\//, '/v2/library/');
-			console.log(`modified_url: ${url.pathname}`)
+			console.log(`modified_url: ${url.pathname}`);
 		}
 
 		// 更改请求的主机名
@@ -230,7 +245,7 @@ export default {
 		}
 
 		// 发起请求并处理响应
-		let original_response = await fetch(new Request(url, request), parameter)
+		let original_response = await fetch(new Request(url, request), parameter);
 		let original_response_clone = original_response.clone();
 		let original_text = original_response_clone.body;
 		let response_headers = original_response.headers;
@@ -246,14 +261,14 @@ export default {
 
 		// 处理重定向
 		if (new_response_headers.get("Location")) {
-			return httpHandler(request, new_response_headers.get("Location"))
+			return httpHandler(request, new_response_headers.get("Location"));
 		}
 
 		// 返回修改后的响应
 		let response = new Response(original_text, {
 			status,
 			headers: new_response_headers
-		})
+		});
 		return response;
 	}
 };
@@ -264,24 +279,24 @@ export default {
  * @param {string} pathname 请求路径
  */
 function httpHandler(req, pathname) {
-	const reqHdrRaw = req.headers
+	const reqHdrRaw = req.headers;
 
 	// 处理预检请求
 	if (req.method === 'OPTIONS' &&
 		reqHdrRaw.has('access-control-request-headers')
 	) {
-		return new Response(null, PREFLIGHT_INIT)
+		return new Response(null, PREFLIGHT_INIT);
 	}
 
-	let rawLen = ''
+	let rawLen = '';
 
-	const reqHdrNew = new Headers(reqHdrRaw)
+	const reqHdrNew = new Headers(reqHdrRaw);
 
-	const refer = reqHdrNew.get('referer')
+	const refer = reqHdrNew.get('referer');
 
-	let urlStr = pathname
+	let urlStr = pathname;
 
-	const urlObj = newUrl(urlStr)
+	const urlObj = newUrl(urlStr);
 
 	/** @type {RequestInit} */
 	const reqInit = {
@@ -289,8 +304,8 @@ function httpHandler(req, pathname) {
 		headers: reqHdrNew,
 		redirect: 'follow',
 		body: req.body
-	}
-	return proxy(urlObj, reqInit, rawLen)
+	};
+	return proxy(urlObj, reqInit, rawLen);
 }
 
 /**
@@ -300,44 +315,42 @@ function httpHandler(req, pathname) {
  * @param {string} rawLen 原始长度
  */
 async function proxy(urlObj, reqInit, rawLen) {
-	const res = await fetch(urlObj.href, reqInit)
-	const resHdrOld = res.headers
-	const resHdrNew = new Headers(resHdrOld)
+	const res = await fetch(urlObj.href, reqInit);
+	const resHdrOld = res.headers;
+	const resHdrNew = new Headers(resHdrOld);
 
 	// 验证长度
 	if (rawLen) {
-		const newLen = resHdrOld.get('content-length') || ''
-		const badLen = (rawLen !== newLen)
+		const newLen = resHdrOld.get('content-length') || '';
+		const badLen = (rawLen !== newLen);
 
 		if (badLen) {
 			return makeRes(res.body, 400, {
 				'--error': `bad len: ${newLen}, except: ${rawLen}`,
 				'access-control-expose-headers': '--error',
-			})
+			});
 		}
 	}
-	const status = res.status
-	resHdrNew.set('access-control-expose-headers', '*')
-	resHdrNew.set('access-control-allow-origin', '*')
-	resHdrNew.set('Cache-Control', 'max-age=1500')
+	const status = res.status;
+	resHdrNew.set('access-control-expose-headers', '*');
+	resHdrNew.set('access-control-allow-origin', '*');
+	resHdrNew.set('Cache-Control', 'max-age=1500');
 
 	// 删除不必要的头
-	resHdrNew.delete('content-security-policy')
-	resHdrNew.delete('content-security-policy-report-only')
-	resHdrNew.delete('clear-site-data')
+	resHdrNew.delete('content-security-policy');
+	resHdrNew.delete('content-security-policy-report-only');
+	resHdrNew.delete('clear-site-data');
 
 	return new Response(res.body, {
 		status,
 		headers: resHdrNew
-	})
+	});
 }
 
 async function ADD(envadd) {
 	var addtext = envadd.replace(/[	 |"'\r\n]+/g, ',').replace(/,+/g, ',');	// 将空格、双引号、单引号和换行符替换为逗号
-	//console.log(addtext);
 	if (addtext.charAt(0) == ',') addtext = addtext.slice(1);
-	if (addtext.charAt(addtext.length -1) == ',') addtext = addtext.slice(0, addtext.length - 1);
+	if (addtext.charAt(addtext.length - 1) == ',') addtext = addtext.slice(0, addtext.length - 1);
 	const add = addtext.split(',');
-	//console.log(add);
-	return add ;
+	return add;
 }
