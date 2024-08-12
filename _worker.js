@@ -217,8 +217,9 @@ export default {
 		}
 
 		// 修改 /v2/ 请求路径
-		if (ns === 'docker.io' && /^\/v2\/[^/]+\/[^/]+\/[^/]+$/.test(url.pathname) && !/^\/v2\/library/.test(url.pathname)) {
-			url.pathname = url.pathname.replace(/\/v2\//, '/v2/library/');
+		if ( hub_host == 'registry-1.docker.io' && /^\/v2\/[^/]+\/[^/]+\/[^/]+$/.test(url.pathname) && !/^\/v2\/library/.test(url.pathname)) {
+			//url.pathname = url.pathname.replace(/\/v2\//, '/v2/library/');
+			url.pathname = '/v2/library/' + url.pathname.split('/v2/')[1];
 			console.log(`modified_url: ${url.pathname}`);
 		}
 
