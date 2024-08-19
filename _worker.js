@@ -102,6 +102,92 @@ async function nginx() {
 	return text;
 }
 
+async function searchInterface() {
+	const text = `
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<title>Docker Hub Search</title>
+		<style>
+		body {
+			font-family: Arial, sans-serif;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+			margin: 0;
+			background: linear-gradient(to right, rgb(28, 143, 237), rgb(29, 99, 237));
+		}
+		.logo {
+			margin-bottom: 20px;
+		}
+		.search-container {
+			display: flex;
+			align-items: center;
+		}
+		#search-input {
+			padding: 10px;
+			font-size: 16px;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			width: 300px;
+			margin-right: 10px;
+		}
+		#search-button {
+			padding: 10px;
+			background-color: rgba(255, 255, 255, 0.2); /* 设置白色，透明度为10% */
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+			width: 44px;
+			height: 44px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}			
+		#search-button svg {
+			width: 24px;
+			height: 24px;
+		}
+		</style>
+	</head>
+	<body>
+		<div class="logo">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 18" fill="#ffffff" width="100" height="75">
+			<path d="M23.763 6.886c-.065-.053-.673-.512-1.954-.512-.32 0-.659.03-1.01.087-.248-1.703-1.651-2.533-1.716-2.57l-.345-.2-.227.328a4.596 4.596 0 0 0-.611 1.433c-.23.972-.09 1.884.403 2.666-.596.331-1.546.418-1.744.42H.752a.753.753 0 0 0-.75.749c-.007 1.456.233 2.864.692 4.07.545 1.43 1.355 2.483 2.409 3.13 1.181.725 3.104 1.14 5.276 1.14 1.016 0 2.03-.092 2.93-.266 1.417-.273 2.705-.742 3.826-1.391a10.497 10.497 0 0 0 2.61-2.14c1.252-1.42 1.998-3.005 2.553-4.408.075.003.148.005.221.005 1.371 0 2.215-.55 2.68-1.01.505-.5.685-.998.704-1.053L24 7.076l-.237-.19Z"></path>
+			<path d="M2.216 8.075h2.119a.186.186 0 0 0 .185-.186V6a.186.186 0 0 0-.185-.186H2.216A.186.186 0 0 0 2.031 6v1.89c0 .103.083.186.185.186Zm2.92 0h2.118a.185.185 0 0 0 .185-.186V6a.185.185 0 0 0-.185-.186H5.136A.185.185 0 0 0 4.95 6v1.89c0 .103.083.186.186.186Zm2.964 0h2.118a.186.186 0 0 0 .185-.186V6a.186.186 0 0 0-.185-.186H8.1A.185.185 0 0 0 7.914 6v1.89c0 .103.083.186.186.186Zm2.928 0h2.119a.185.185 0 0 0 .185-.186V6a.185.185 0 0 0-.185-.186h-2.119a.186.186 0 0 0-.185.186v1.89c0 .103.083.186.185.186Zm-5.892-2.72h2.118a.185.185 0 0 0 .185-.186V3.28a.186.186 0 0 0-.185-.186H5.136a.186.186 0 0 0-.186.186v1.89c0 .103.083.186.186.186Zm2.964 0h2.118a.186.186 0 0 0 .185-.186V3.28a.186.186 0 0 0-.185-.186H8.1a.186.186 0 0 0-.186.186v1.89c0 .103.083.186.186.186Zm2.928 0h2.119a.185.185 0 0 0 .185-.186V3.28a.186.186 0 0 0-.185-.186h-2.119a.186.186 0 0 0-.185.186v1.89c0 .103.083.186.185.186Zm0-2.72h2.119a.186.186 0 0 0 .185-.186V.56a.185.185 0 0 0-.185-.186h-2.119a.186.186 0 0 0-.185.186v1.89c0 .103.083.186.185.186Zm2.955 5.44h2.118a.185.185 0 0 0 .186-.186V6a.185.185 0 0 0-.186-.186h-2.118a.185.185 0 0 0-.185.186v1.89c0 .103.083.186.185.186Z"></path>
+		</svg>
+		</div>
+		<div class="search-container">
+		<input type="text" id="search-input" placeholder="Search Docker Hub">
+		<button id="search-button">
+			<svg focusable="false" aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="white" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+			</svg>
+		</button>
+		</div>
+		<script>
+		function performSearch() {
+			const query = document.getElementById('search-input').value;
+			if (query) {
+			window.location.href = '/search?q=' + encodeURIComponent(query);
+			}
+		}
+	
+		document.getElementById('search-button').addEventListener('click', performSearch);
+		document.getElementById('search-input').addEventListener('keypress', function(event) {
+			if (event.key === 'Enter') {
+			performSearch();
+			}
+		});
+		</script>
+	</body>
+	</html>
+	`;
+	return text;
+}
+
 export default {
 	async fetch(request, env, ctx) {
 		const getReqHeader = (key) => request.headers.get(key); // 获取请求头
@@ -172,6 +258,12 @@ export default {
 						},
 					});
 				} else return fetch(new Request(env.URL, request));
+			} else if (url.pathname == '/'){
+				return new Response(await searchInterface(), {
+					headers: {
+					  'Content-Type': 'text/html; charset=UTF-8',
+					},
+				});
 			}
 			
 			const newUrl = new URL("https://registry.hub.docker.com" + pathname + url.search);
