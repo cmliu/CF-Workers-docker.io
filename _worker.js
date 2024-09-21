@@ -234,6 +234,7 @@ export default {
 			isUuid,
 			pathname.includes('/_'),
 			pathname.includes('/r/'),
+			pathname.includes('/v2/repositories'),
 			pathname.includes('/v2/user'),
 			pathname.includes('/v2/orgs'),
 			pathname.includes('/v2/_catalog'),
@@ -241,9 +242,9 @@ export default {
 			pathname.includes('/v2/feature-flags'),
 			pathname.includes('search'),
 			pathname.includes('source'),
-			pathname === '/',
-			pathname === '/favicon.ico',
-			pathname === '/auth/profile',
+			pathname == '/',
+			pathname == '/favicon.ico',
+			pathname == '/auth/profile',
 		];
 
 		if (conditions.some(condition => condition) && (fakePage === true || hostTop == 'docker')) {
