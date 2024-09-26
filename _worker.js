@@ -5,7 +5,7 @@ let hub_host = 'registry-1.docker.io'
 // Docker认证服务器地址
 const auth_url = 'https://auth.docker.io'
 // 自定义的工作服务器地址
-let workers_url = 'https://hub.skillixx.com'
+let workers_url = 'https://你的域名'
 
 let 屏蔽爬虫UA = ['netcraft'];
 
@@ -20,8 +20,7 @@ function routeByHosts(host) {
 		"k8s": "registry.k8s.io",
 		"ghcr": "ghcr.io",
 		"cloudsmith": "docker.cloudsmith.io",
-		"cloudsmith": "docker.cloudsmith.io",
-		"nvcr": "nvcr.io",
+		
 		// 测试环境
 		"test": "registry-1.docker.io",
 	};
