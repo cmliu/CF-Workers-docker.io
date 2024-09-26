@@ -1,17 +1,17 @@
 // _worker.js
 
 // Docker镜像仓库主机地址
-let hub_host = 'registry-1.docker.io';
+let hub_host = 'registry-1.docker.io'
 // Docker认证服务器地址
-const auth_url = 'https://auth.docker.io';
+const auth_url = 'https://auth.docker.io'
 // 自定义的工作服务器地址
-let workers_url = 'https://hub.skillixx.com/';
+let workers_url = 'https://hub.skillixx.com'
 
 let 屏蔽爬虫UA = ['netcraft'];
 
 // 根据主机名选择对应的上游地址
 function routeByHosts(host) {
-	// 定义路由表
+		// 定义路由表
 	const routes = {
 		// 生产环境
 		"quay": "quay.io",
@@ -20,8 +20,8 @@ function routeByHosts(host) {
 		"k8s": "registry.k8s.io",
 		"ghcr": "ghcr.io",
 		"cloudsmith": "docker.cloudsmith.io",
+		"cloudsmith": "docker.cloudsmith.io",
 		"nvcr": "nvcr.io",
-		
 		// 测试环境
 		"test": "registry-1.docker.io",
 	};
@@ -99,93 +99,7 @@ async function nginx() {
 	</body>
 	</html>
 	`
-	return text;
-}
-
-async function searchInterface() {
-	const text = `
-	<!DOCTYPE html>
-	<html>
-	<head>
-		<title>Docker Hub Search</title>
-		<style>
-		body {
-			font-family: Arial, sans-serif;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			height: 100vh;
-			margin: 0;
-			background: linear-gradient(to right, rgb(28, 143, 237), rgb(29, 99, 237));
-		}
-		.logo {
-			margin-bottom: 20px;
-		}
-		.search-container {
-			display: flex;
-			align-items: center;
-		}
-		#search-input {
-			padding: 10px;
-			font-size: 16px;
-			border: 1px solid #ddd;
-			border-radius: 4px;
-			width: 300px;
-			margin-right: 10px;
-		}
-		#search-button {
-			padding: 10px;
-			background-color: rgba(255, 255, 255, 0.2); /* 设置白色，透明度为10% */
-			border: none;
-			border-radius: 4px;
-			cursor: pointer;
-			width: 44px;
-			height: 44px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}			
-		#search-button svg {
-			width: 24px;
-			height: 24px;
-		}
-		</style>
-	</head>
-	<body>
-		<div class="logo">
-		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 18" fill="#ffffff" width="100" height="75">
-			<path d="M23.763 6.886c-.065-.053-.673-.512-1.954-.512-.32 0-.659.03-1.01.087-.248-1.703-1.651-2.533-1.716-2.57l-.345-.2-.227.328a4.596 4.596 0 0 0-.611 1.433c-.23.972-.09 1.884.403 2.666-.596.331-1.546.418-1.744.42H.752a.753.753 0 0 0-.75.749c-.007 1.456.233 2.864.692 4.07.545 1.43 1.355 2.483 2.409 3.13 1.181.725 3.104 1.14 5.276 1.14 1.016 0 2.03-.092 2.93-.266 1.417-.273 2.705-.742 3.826-1.391a10.497 10.497 0 0 0 2.61-2.14c1.252-1.42 1.998-3.005 2.553-4.408.075.003.148.005.221.005 1.371 0 2.215-.55 2.68-1.01.505-.5.685-.998.704-1.053L24 7.076l-.237-.19Z"></path>
-			<path d="M2.216 8.075h2.119a.186.186 0 0 0 .185-.186V6a.186.186 0 0 0-.185-.186H2.216A.186.186 0 0 0 2.031 6v1.89c0 .103.083.186.185.186Zm2.92 0h2.118a.185.185 0 0 0 .185-.186V6a.185.185 0 0 0-.185-.186H5.136A.185.185 0 0 0 4.95 6v1.89c0 .103.083.186.186.186Zm2.964 0h2.118a.186.186 0 0 0 .185-.186V6a.186.186 0 0 0-.185-.186H8.1A.185.185 0 0 0 7.914 6v1.89c0 .103.083.186.186.186Zm2.928 0h2.119a.185.185 0 0 0 .185-.186V6a.185.185 0 0 0-.185-.186h-2.119a.186.186 0 0 0-.185.186v1.89c0 .103.083.186.185.186Zm-5.892-2.72h2.118a.185.185 0 0 0 .185-.186V3.28a.186.186 0 0 0-.185-.186H5.136a.186.186 0 0 0-.186.186v1.89c0 .103.083.186.186.186Zm2.964 0h2.118a.186.186 0 0 0 .185-.186V3.28a.186.186 0 0 0-.185-.186H8.1a.186.186 0 0 0-.186.186v1.89c0 .103.083.186.186.186Zm2.928 0h2.119a.185.185 0 0 0 .185-.186V3.28a.186.186 0 0 0-.185-.186h-2.119a.186.186 0 0 0-.185.186v1.89c0 .103.083.186.185.186Zm0-2.72h2.119a.186.186 0 0 0 .185-.186V.56a.185.185 0 0 0-.185-.186h-2.119a.186.186 0 0 0-.185.186v1.89c0 .103.083.186.185.186Zm2.955 5.44h2.118a.185.185 0 0 0 .186-.186V6a.185.185 0 0 0-.186-.186h-2.118a.185.185 0 0 0-.185.186v1.89c0 .103.083.186.185.186Z"></path>
-		</svg>
-		</div>
-		<div class="search-container">
-		<input type="text" id="search-input" placeholder="Search Docker Hub">
-		<button id="search-button">
-			<svg focusable="false" aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-			<path d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="white" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-			</svg>
-		</button>
-		</div>
-		<script>
-		function performSearch() {
-			const query = document.getElementById('search-input').value;
-			if (query) {
-			window.location.href = '/search?q=' + encodeURIComponent(query);
-			}
-		}
-	
-		document.getElementById('search-button').addEventListener('click', performSearch);
-		document.getElementById('search-input').addEventListener('keypress', function(event) {
-			if (event.key === 'Enter') {
-			performSearch();
-			}
-		});
-		</script>
-	</body>
-	</html>
-	`;
-	return text;
+	return text ;
 }
 
 export default {
@@ -198,43 +112,27 @@ export default {
 		if (env.UA) 屏蔽爬虫UA = 屏蔽爬虫UA.concat(await ADD(env.UA));
 		workers_url = `https://${url.hostname}`;
 		const pathname = url.pathname;
-
-		// 获取请求参数中的 ns
-		const ns = url.searchParams.get('ns'); 
-		const hostname = url.searchParams.get('hubhost') || url.hostname;
-		const hostTop = hostname.split('.')[0]; // 获取主机名的第一部分
-
-		let checkHost; // 在这里定义 checkHost 变量
-		// 如果存在 ns 参数，优先使用它来确定 hub_host
-		if (ns) {
-			if (ns === 'docker.io') {
-				hub_host = 'registry-1.docker.io'; // 设置上游地址为 registry-1.docker.io
-			} else {
-				hub_host = ns; // 直接使用 ns 作为 hub_host
-			}
-		} else {
-			checkHost = routeByHosts(hostTop);
-			hub_host = checkHost[0]; // 获取上游地址
-		}
-
-		const fakePage = checkHost ? checkHost[1] : false; // 确保 fakePage 不为 undefined
+		const hostname = url.searchParams.get('hubhost') || url.hostname; 
+		const hostTop = hostname.split('.')[0];// 获取主机名的第一部分
+		const checkHost = routeByHosts(hostTop);
+		hub_host = checkHost[0]; // 获取上游地址
+		const fakePage = checkHost[1];
 		console.log(`域名头部: ${hostTop}\n反代地址: ${hub_host}\n伪装首页: ${fakePage}`);
 		const isUuid = isUUID(pathname.split('/')[1].split('/')[0]);
-
-		if (屏蔽爬虫UA.some(fxxk => userAgent.includes(fxxk)) && 屏蔽爬虫UA.length > 0) {
-			// 首页改成一个nginx伪装页
+		
+		if (屏蔽爬虫UA.some(fxxk => userAgent.includes(fxxk)) && 屏蔽爬虫UA.length > 0){
+			//首页改成一个nginx伪装页
 			return new Response(await nginx(), {
 				headers: {
 					'Content-Type': 'text/html; charset=UTF-8',
 				},
 			});
 		}
-
+		
 		const conditions = [
 			isUuid,
 			pathname.includes('/_'),
-			pathname.includes('/r/'),
-			pathname.includes('/v2/repositories'),
+			pathname.includes('/r'),
 			pathname.includes('/v2/user'),
 			pathname.includes('/v2/orgs'),
 			pathname.includes('/v2/_catalog'),
@@ -242,16 +140,16 @@ export default {
 			pathname.includes('/v2/feature-flags'),
 			pathname.includes('search'),
 			pathname.includes('source'),
-			pathname == '/',
-			pathname == '/favicon.ico',
-			pathname == '/auth/profile',
+			pathname === '/',
+			pathname === '/favicon.ico',
+			pathname === '/auth/profile',
 		];
 
 		if (conditions.some(condition => condition) && (fakePage === true || hostTop == 'docker')) {
-			if (env.URL302) {
+			if (env.URL302){
 				return Response.redirect(env.URL302, 302);
-			} else if (env.URL) {
-				if (env.URL.toLowerCase() == 'nginx') {
+			} else if (env.URL){
+				if (env.URL.toLowerCase() == 'nginx'){
 					//首页改成一个nginx伪装页
 					return new Response(await nginx(), {
 						headers: {
@@ -259,12 +157,6 @@ export default {
 						},
 					});
 				} else return fetch(new Request(env.URL, request));
-			} else if (url.pathname == '/'){
-				return new Response(await searchInterface(), {
-					headers: {
-					  'Content-Type': 'text/html; charset=UTF-8',
-					},
-				});
 			}
 			
 			const newUrl = new URL("https://registry.hub.docker.com" + pathname + url.search);
@@ -289,7 +181,7 @@ export default {
 		if (!/%2F/.test(url.search) && /%3A/.test(url.toString())) {
 			let modifiedUrl = url.toString().replace(/%3A(?=.*?&)/, '%3Alibrary%2F');
 			url = new URL(modifiedUrl);
-			console.log(`handle_url: ${url}`);
+			console.log(`handle_url: ${url}`)
 		}
 
 		// 处理token请求
@@ -305,15 +197,14 @@ export default {
 					'Cache-Control': 'max-age=0'
 				}
 			};
-			let token_url = auth_url + url.pathname + url.search;
-			return fetch(new Request(token_url, request), token_parameter);
+			let token_url = auth_url + url.pathname + url.search
+			return fetch(new Request(token_url, request), token_parameter)
 		}
 
 		// 修改 /v2/ 请求路径
-		if ( hub_host == 'registry-1.docker.io' && /^\/v2\/[^/]+\/[^/]+\/[^/]+$/.test(url.pathname) && !/^\/v2\/library/.test(url.pathname)) {
-			//url.pathname = url.pathname.replace(/\/v2\//, '/v2/library/');
-			url.pathname = '/v2/library/' + url.pathname.split('/v2/')[1];
-			console.log(`modified_url: ${url.pathname}`);
+		if (/^\/v2\/[^/]+\/[^/]+\/[^/]+$/.test(url.pathname) && !/^\/v2\/library/.test(url.pathname)) {
+			url.pathname = url.pathname.replace(/\/v2\//, '/v2/library/');
+			console.log(`modified_url: ${url.pathname}`)
 		}
 
 		// 更改请求的主机名
@@ -339,7 +230,7 @@ export default {
 		}
 
 		// 发起请求并处理响应
-		let original_response = await fetch(new Request(url, request), parameter);
+		let original_response = await fetch(new Request(url, request), parameter)
 		let original_response_clone = original_response.clone();
 		let original_text = original_response_clone.body;
 		let response_headers = original_response.headers;
@@ -355,14 +246,14 @@ export default {
 
 		// 处理重定向
 		if (new_response_headers.get("Location")) {
-			return httpHandler(request, new_response_headers.get("Location"));
+			return httpHandler(request, new_response_headers.get("Location"))
 		}
 
 		// 返回修改后的响应
 		let response = new Response(original_text, {
 			status,
 			headers: new_response_headers
-		});
+		})
 		return response;
 	}
 };
@@ -373,24 +264,24 @@ export default {
  * @param {string} pathname 请求路径
  */
 function httpHandler(req, pathname) {
-	const reqHdrRaw = req.headers;
+	const reqHdrRaw = req.headers
 
 	// 处理预检请求
 	if (req.method === 'OPTIONS' &&
 		reqHdrRaw.has('access-control-request-headers')
 	) {
-		return new Response(null, PREFLIGHT_INIT);
+		return new Response(null, PREFLIGHT_INIT)
 	}
 
-	let rawLen = '';
+	let rawLen = ''
 
-	const reqHdrNew = new Headers(reqHdrRaw);
+	const reqHdrNew = new Headers(reqHdrRaw)
 
-	const refer = reqHdrNew.get('referer');
+	const refer = reqHdrNew.get('referer')
 
-	let urlStr = pathname;
+	let urlStr = pathname
 
-	const urlObj = newUrl(urlStr);
+	const urlObj = newUrl(urlStr)
 
 	/** @type {RequestInit} */
 	const reqInit = {
@@ -398,8 +289,8 @@ function httpHandler(req, pathname) {
 		headers: reqHdrNew,
 		redirect: 'follow',
 		body: req.body
-	};
-	return proxy(urlObj, reqInit, rawLen);
+	}
+	return proxy(urlObj, reqInit, rawLen)
 }
 
 /**
@@ -409,42 +300,44 @@ function httpHandler(req, pathname) {
  * @param {string} rawLen 原始长度
  */
 async function proxy(urlObj, reqInit, rawLen) {
-	const res = await fetch(urlObj.href, reqInit);
-	const resHdrOld = res.headers;
-	const resHdrNew = new Headers(resHdrOld);
+	const res = await fetch(urlObj.href, reqInit)
+	const resHdrOld = res.headers
+	const resHdrNew = new Headers(resHdrOld)
 
 	// 验证长度
 	if (rawLen) {
-		const newLen = resHdrOld.get('content-length') || '';
-		const badLen = (rawLen !== newLen);
+		const newLen = resHdrOld.get('content-length') || ''
+		const badLen = (rawLen !== newLen)
 
 		if (badLen) {
 			return makeRes(res.body, 400, {
 				'--error': `bad len: ${newLen}, except: ${rawLen}`,
 				'access-control-expose-headers': '--error',
-			});
+			})
 		}
 	}
-	const status = res.status;
-	resHdrNew.set('access-control-expose-headers', '*');
-	resHdrNew.set('access-control-allow-origin', '*');
-	resHdrNew.set('Cache-Control', 'max-age=1500');
+	const status = res.status
+	resHdrNew.set('access-control-expose-headers', '*')
+	resHdrNew.set('access-control-allow-origin', '*')
+	resHdrNew.set('Cache-Control', 'max-age=1500')
 
 	// 删除不必要的头
-	resHdrNew.delete('content-security-policy');
-	resHdrNew.delete('content-security-policy-report-only');
-	resHdrNew.delete('clear-site-data');
+	resHdrNew.delete('content-security-policy')
+	resHdrNew.delete('content-security-policy-report-only')
+	resHdrNew.delete('clear-site-data')
 
 	return new Response(res.body, {
 		status,
 		headers: resHdrNew
-	});
+	})
 }
 
 async function ADD(envadd) {
 	var addtext = envadd.replace(/[	 |"'\r\n]+/g, ',').replace(/,+/g, ',');	// 将空格、双引号、单引号和换行符替换为逗号
+	//console.log(addtext);
 	if (addtext.charAt(0) == ',') addtext = addtext.slice(1);
-	if (addtext.charAt(addtext.length - 1) == ',') addtext = addtext.slice(0, addtext.length - 1);
+	if (addtext.charAt(addtext.length -1) == ',') addtext = addtext.slice(0, addtext.length - 1);
 	const add = addtext.split(',');
-	return add;
+	//console.log(add);
+	return add ;
 }
