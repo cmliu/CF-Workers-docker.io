@@ -384,6 +384,8 @@ export default {
 			pathname.includes('/r/'),
 			pathname.includes('/v2/repositories'),
 			pathname.includes('/v2/namespaces'),
+			pathname.includes('/v2/auditlogs'),
+			pathname.includes('/v2/access-tokens'),
 			pathname.includes('/v2/user'),
 			pathname.includes('/v2/orgs'),
 			pathname.includes('/v2/_catalog'),
