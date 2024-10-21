@@ -5,20 +5,50 @@
 这个项目是一个基于 Cloudflare Workers 的 Docker 镜像代理工具。它能够中转对 Docker 官方镜像仓库的请求，解决一些访问限制和加速访问的问题。
 
 ## 部署方式
+以下2种方式二选一即可:
+- **Workers** 部署：复制 [_worker.js](https://github.com/cmliu/CF-Workers-docker.io/blob/main/_worker.js) 代码, 无需任何修改, `保存并部署`. (此方式无法自动更新, 每次都需要手动编辑代码更新)
+- **Pages** 部署：`Fork` 后 `连接GitHub` 一键部署. (此方式每次推送代码都会自动更新)
 
-- **Workers** 部署：复制 [_worker.js](https://github.com/cmliu/CF-Workers-docker.io/blob/main/_worker.js) 代码，`保存并部署`即可
-- **Pages** 部署：`Fork` 后 `连接GitHub` 一键部署即可
+### 域名配置
+#### 使用默认分配域名
+> 该域名默认只能访问 `docker` 资源.
+
+CloudFlare 会默认给项目*分配*一个域名, 此时可以使用其默认的域名进行访问, 如下图所示: [https://cf-workers-docker-io-a7w.pages.dev](https://cf-workers-docker-io-a7w.pages.dev). 
+
+![image](https://github.com/user-attachments/assets/6b857db7-8359-4bbb-8b12-ed4c1eecf5d4)
+
+
+#### 使用自定义域名
+> 1. 准备域名, 如: xx.com
+> 2. 将添加不同的 `CNAME` 解析, 指向**CloudFlare**默认分配的域名, 如: `cf-workers-docker-io-a7w.pages.dev`
+> 3. 需要添加的列表为:
+>    * docker
+>    * nvcr
+>    * quay
+>    * gcr
+>    * ghcr
+>    * k8s-gcr
+>    * k8s
+>    * cloudsmith
+
+
+如果需要实现不同域名的代理访问, 需要配置自定义域名, 实现不同资源的代理访问.
+配置方式: 
+![image](https://github.com/user-attachments/assets/89fdd33a-4e18-40f5-89d7-792991721c8c)
+
+
 
 ## 如何使用？ [视频教程](https://www.youtube.com/watch?v=l2jwq9CagNQ)
 
-例如您的Workers项目域名为：`docker.fxxk.dedyn.io`；
+1. 假设不使用自定义域名, 则域名为默认分配的域名, 此域名大概率会被污染, 如: `cf-workers-docker-io-a7w.pages.dev`
+2. 假设有自定义域名, 如：`docker.xx.com`
 
 ### 1.官方镜像路径前面加域名
 ```shell
-docker pull docker.fxxk.dedyn.io/stilleshan/frpc:latest
+docker pull docker.xx.com/stilleshan/frpc:latest
 ```
 ```shell
-docker pull docker.fxxk.dedyn.io/library/nginx:stable-alpine3.19-perl
+docker pull docker.xx.com/library/nginx:stable-alpine3.19-perl
 ```
 
 ### 2.一键设置镜像加速
@@ -27,7 +57,7 @@ docker pull docker.fxxk.dedyn.io/library/nginx:stable-alpine3.19-perl
 sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json <<-'EOF'
 {
-  "registry-mirrors": ["https://docker.fxxk.dedyn.io"]  # 请替换为您自己的Worker自定义域名
+  "registry-mirrors": ["https://docker.xx.com"]  # 请替换为您自己的Worker自定义域名
 }
 EOF
 sudo systemctl daemon-reload
@@ -40,15 +70,15 @@ Containerd 较简单，它支持任意 `registry` 的 `mirror`，只需要修改
     [plugins."io.containerd.grpc.v1.cri".registry]
       [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
-          endpoint = ["https://xxxx.xx.com"]
+          endpoint = ["https://docker.xx.com"]
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."k8s.gcr.io"]
-          endpoint = ["https://xxxx.xx.com"]
+          endpoint = ["https://k8s-gcr.xx.com"]
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."gcr.io"]
-          endpoint = ["https://xxxx.xx.com"]
+          endpoint = ["https://k8s.xx.com"]
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."ghcr.io"]
-          endpoint = ["https://xxxx.xx.com"]
+          endpoint = ["https://ghcr.xx.com"]
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."quay.io"]
-          endpoint = ["https://xxxx.xx.com"]
+          endpoint = ["https://quay.xx.com"]
 ```
 `Podman` 同样支持任意 `registry` 的 `mirror`，修改配置文件 `/etc/containers/registries.conf`，添加配置：  
 ```yaml
@@ -60,7 +90,7 @@ insecure = true
 location = "registry-1.docker.io"
 
 [[registry.mirror]]
-location = "https://xxxx.onrender.com"
+location = "https://docker.xx.com"
 
 [[registry]]
 prefix = "k8s.gcr.io"
@@ -68,7 +98,7 @@ insecure = true
 location = "k8s.gcr.io"
 
 [[registry.mirror]]
-location = "https://xxxx.onrender.com"
+location = "https://k8s-gcr.xx.com"
 
 [[registry]]
 prefix = "gcr.io"
@@ -76,7 +106,7 @@ insecure = true
 location = "gcr.io"
 
 [[registry.mirror]]
-location = "https://xxxx.onrender.com"
+location = "https://gcr.xx.com"
 
 [[registry]]
 prefix = "ghcr.io"
@@ -84,7 +114,7 @@ insecure = true
 location = "ghcr.io"
 
 [[registry.mirror]]
-location = "https://xxxx.onrender.com"
+location = "https://ghcr.xx.com"
 
 [[registry]]
 prefix = "quay.io"
@@ -92,7 +122,7 @@ insecure = true
 location = "quay.io"
 
 [[registry.mirror]]
-location = "https://xxxx.onrender.com"
+location = "https://quay.xx.com"
 
 ```
 
@@ -100,7 +130,7 @@ location = "https://xxxx.onrender.com"
 对于以上配置，k8s在使用的时候，就可以直接`pull`外部无法pull的镜像了 
  手动可以直接`pull` 配置了`mirror`的仓库  
  `crictl pull registry.k8s.io/kube-proxy:v1.28.4`
- `docker  pull nginx:1.21`
+ `docker pull nginx:1.21`
 
 
 
