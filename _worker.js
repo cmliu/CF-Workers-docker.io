@@ -103,89 +103,237 @@ async function nginx() {
 }
 
 async function searchInterface() {
-	const text = `
-	<!DOCTYPE html>
-	<html>
-	<head>
-		<title>Docker Hub Search</title>
-		<style>
-		body {
-			font-family: Arial, sans-serif;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			height: 100vh;
-			margin: 0;
-			background: linear-gradient(to right, rgb(28, 143, 237), rgb(29, 99, 237));
-		}
-		.logo {
-			margin-bottom: 20px;
-		}
-		.search-container {
-			display: flex;
-			align-items: center;
-		}
-		#search-input {
-			padding: 10px;
-			font-size: 16px;
-			border: 1px solid #ddd;
-			border-radius: 4px;
-			width: 300px;
-			margin-right: 10px;
-		}
-		#search-button {
-			padding: 10px;
-			background-color: rgba(255, 255, 255, 0.2); /* 设置白色，透明度为10% */
-			border: none;
-			border-radius: 4px;
-			cursor: pointer;
-			width: 44px;
-			height: 44px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}			
-		#search-button svg {
-			width: 24px;
-			height: 24px;
-		}
-		</style>
-	</head>
-	<body>
-		<div class="logo">
-		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 18" fill="#ffffff" width="100" height="75">
-			<path d="M23.763 6.886c-.065-.053-.673-.512-1.954-.512-.32 0-.659.03-1.01.087-.248-1.703-1.651-2.533-1.716-2.57l-.345-.2-.227.328a4.596 4.596 0 0 0-.611 1.433c-.23.972-.09 1.884.403 2.666-.596.331-1.546.418-1.744.42H.752a.753.753 0 0 0-.75.749c-.007 1.456.233 2.864.692 4.07.545 1.43 1.355 2.483 2.409 3.13 1.181.725 3.104 1.14 5.276 1.14 1.016 0 2.03-.092 2.93-.266 1.417-.273 2.705-.742 3.826-1.391a10.497 10.497 0 0 0 2.61-2.14c1.252-1.42 1.998-3.005 2.553-4.408.075.003.148.005.221.005 1.371 0 2.215-.55 2.68-1.01.505-.5.685-.998.704-1.053L24 7.076l-.237-.19Z"></path>
-			<path d="M2.216 8.075h2.119a.186.186 0 0 0 .185-.186V6a.186.186 0 0 0-.185-.186H2.216A.186.186 0 0 0 2.031 6v1.89c0 .103.083.186.185.186Zm2.92 0h2.118a.185.185 0 0 0 .185-.186V6a.185.185 0 0 0-.185-.186H5.136A.185.185 0 0 0 4.95 6v1.89c0 .103.083.186.186.186Zm2.964 0h2.118a.186.186 0 0 0 .185-.186V6a.186.186 0 0 0-.185-.186H8.1A.185.185 0 0 0 7.914 6v1.89c0 .103.083.186.186.186Zm2.928 0h2.119a.185.185 0 0 0 .185-.186V6a.185.185 0 0 0-.185-.186h-2.119a.186.186 0 0 0-.185.186v1.89c0 .103.083.186.185.186Zm-5.892-2.72h2.118a.185.185 0 0 0 .185-.186V3.28a.186.186 0 0 0-.185-.186H5.136a.186.186 0 0 0-.186.186v1.89c0 .103.083.186.186.186Zm2.964 0h2.118a.186.186 0 0 0 .185-.186V3.28a.186.186 0 0 0-.185-.186H8.1a.186.186 0 0 0-.186.186v1.89c0 .103.083.186.186.186Zm2.928 0h2.119a.185.185 0 0 0 .185-.186V3.28a.186.186 0 0 0-.185-.186h-2.119a.186.186 0 0 0-.185.186v1.89c0 .103.083.186.185.186Zm0-2.72h2.119a.186.186 0 0 0 .185-.186V.56a.185.185 0 0 0-.185-.186h-2.119a.186.186 0 0 0-.185.186v1.89c0 .103.083.186.185.186Zm2.955 5.44h2.118a.185.185 0 0 0 .186-.186V6a.185.185 0 0 0-.186-.186h-2.118a.185.185 0 0 0-.185.186v1.89c0 .103.083.186.185.186Z"></path>
-		</svg>
-		</div>
-		<div class="search-container">
-		<input type="text" id="search-input" placeholder="Search Docker Hub">
-		<button id="search-button">
-			<svg focusable="false" aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-			<path d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="white" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-			</svg>
-		</button>
-		</div>
-		<script>
-		function performSearch() {
-			const query = document.getElementById('search-input').value;
-			if (query) {
-			window.location.href = '/search?q=' + encodeURIComponent(query);
-			}
-		}
-	
-		document.getElementById('search-button').addEventListener('click', performSearch);
-		document.getElementById('search-input').addEventListener('keypress', function(event) {
-			if (event.key === 'Enter') {
-			performSearch();
-			}
-		});
-		</script>
-	</body>
-	</html>
-	`;
-	return text;
+    const text = `
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Docker Hub 镜像搜索</title>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --primary-color: #0db7ed;
+                --secondary-color: #002c66;
+                --text-color: #ffffff;
+                --bg-color: #f0f8ff;
+            }
+            body, html {
+                height: 100%;
+                margin: 0;
+                font-family: 'Roboto', sans-serif;
+                background: var(--bg-color);
+                color: var(--secondary-color);
+            }
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 2rem;
+            }
+            header {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+            .logo {
+                width: 150px;
+                margin-bottom: 1rem;
+            }
+            h1 {
+                font-size: 2.5rem;
+                color: var(--secondary-color);
+            }
+            .search-container {
+                background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+                padding: 2rem;
+                border-radius: 10px;
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            }
+            .search-box {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 1rem;
+            }
+            #search-input {
+                width: 70%;
+                padding: 12px 20px;
+                font-size: 18px;
+                border: none;
+                border-radius: 25px 0 0 25px;
+                outline: none;
+                background: rgba(255, 255, 255, 0.9);
+            }
+            #search-button {
+                background: var(--secondary-color);
+                color: var(--text-color);
+                border: none;
+                padding: 12px 20px;
+                border-radius: 0 25px 25px 0;
+                cursor: pointer;
+                transition: background 0.3s ease;
+            }
+            #search-button:hover {
+                background: #001f4d;
+            }
+            #search-tips {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 5px;
+                padding: 1rem;
+                margin-top: 1rem;
+                color: var(--text-color);
+            }
+            .popular-searches {
+                margin-top: 2rem;
+                text-align: center;
+            }
+            .popular-searches h3 {
+                color: var(--secondary-color);
+                margin-bottom: 1rem;
+            }
+            .tag {
+                display: inline-block;
+                background: var(--primary-color);
+                color: var(--text-color);
+                padding: 8px 15px;
+                border-radius: 20px;
+                margin: 5px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            .tag:hover {
+                background: var(--secondary-color);
+                transform: translateY(-2px);
+            }
+            .features {
+                display: flex;
+                justify-content: space-around;
+                margin-top: 3rem;
+            }
+            .feature {
+                text-align: center;
+                padding: 1rem;
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
+            .feature:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            }
+            .feature img {
+                width: 64px;
+                height: 64px;
+                margin-bottom: 1rem;
+            }
+            footer {
+                text-align: center;
+                margin-top: 3rem;
+                padding: 1rem;
+                background: var(--secondary-color);
+                color: var(--text-color);
+            }
+            @media (max-width: 768px) {
+                .search-box {
+                    flex-direction: column;
+                }
+                #search-input, #search-button {
+                    width: 100%;
+                    border-radius: 25px;
+                    margin-bottom: 1rem;
+                }
+                .features {
+                    flex-direction: column;
+                }
+                .feature {
+                    margin-bottom: 1rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <img src="https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png" alt="Docker Logo" class="logo">
+                <h1>Docker Hub 镜像搜索</h1>
+            </header>
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="搜索 Docker 镜像、容器或服务">
+                    <button id="search-button">搜索</button>
+                </div>
+                <div id="search-tips">
+                    <p>搜索提示：输入关键词以开始搜索，例如 "nginx"、"mysql:latest" 等。</p>
+                </div>
+            </div>
+            <div class="popular-searches">
+                <h3>热门搜索</h3>
+                <div class="tags">
+                    <span class="tag">nginx</span>
+                    <span class="tag">mysql</span>
+                    <span class="tag">redis</span>
+                    <span class="tag">ubuntu</span>
+                    <span class="tag">python</span>
+                    <span class="tag">node</span>
+                    <span class="tag">php</span>
+                    <span class="tag">postgres</span>
+                </div>
+            </div>
+            <div class="features">
+                <div class="feature">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2092/2092663.png" alt="快速搜索">
+                    <h3>快速搜索</h3>
+                    <p>迅速找到您需要的 Docker 镜像</p>
+                </div>
+                <div class="feature">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1835/1835211.png" alt="版本对比">
+                    <h3>版本对比</h3>
+                    <p>轻松比较不同版本的 Docker 镜像</p>
+                </div>
+                <div class="feature">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3208/3208726.png" alt="高级过滤">
+                    <h3>高级过滤</h3>
+                    <p>使用多种条件精确筛选所需镜像</p>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <p>&copy; 2024 Workers-Proxy-Docker. 保留所有权利。</p>
+        </footer>
+	    <script>
+	        function performSearch() {
+	            const query = document.getElementById('search-input').value;
+	            if (query) {
+	                window.location.href = '/search?q=' + encodeURIComponent(query);
+	            }
+	        }
+	    
+	        document.getElementById('search-button').addEventListener('click', performSearch);
+	        document.getElementById('search-input').addEventListener('keypress', function(event) {
+	            if (event.key === 'Enter') {
+	                performSearch();
+	            }
+	        });
+
+	        document.querySelectorAll('.tag').forEach(tag => {
+	            tag.addEventListener('click', function() {
+	                document.getElementById('search-input').value = this.textContent;
+	                performSearch();
+	            });
+	        });
+
+	        document.getElementById('search-input').addEventListener('input', function() {
+	            const searchTips = document.getElementById('search-tips');
+	            if (this.value.length > 0) {
+	                searchTips.innerHTML = '<p>输入完成后，请点击搜索按钮或按回车键开始搜索 "' + this.value + '"</p>';
+	            } else {
+	                searchTips.innerHTML = '<p>搜索提示：输入关键词以开始搜索，例如 "nginx"、"mysql:latest" 等。</p>';
+	            }
+	        });
+	    </script>
+    </body>
+    </html>
+    `;
+    return text;
 }
 
 export default {
