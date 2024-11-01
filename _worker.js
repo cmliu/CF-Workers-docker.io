@@ -397,12 +397,12 @@ async function searchInterface() {
 	                <pre><code class="language-bash">docker pull node:latest</code></pre>
 	            </p>
 	            <p>只要在原命令前, 加入本仓库地址作为前缀即可:</p>
-	            <pre><code class="language-bash">docker pull registry.szis.tech/node:latest</code></pre>
+	            <pre><code class="language-bash">docker pull registry.xx9527.cn/node:latest</code></pre>
 	
 	            <h3>Docker 配置代理仓库</h3>
 	            <p>将本仓库配置为 Docker 的代理仓库, 即修改配置文件 <i>/etc/docker/daemon.json</i> 配置文件, 如不存在则创建该文件</p>
 	            <p>在文件中,添加以下配置:</p>
-	            <pre><code class="language-bash">{"registry-mirrors": ["https://registry.szis.tech"]}</code></pre>
+	            <pre><code class="language-bash">{"registry-mirrors": ["https://registry.xx9527.cn"]}</code></pre>
 	            <p>然后重启 Docker 服务</p>
 	            <pre><code class="language-bash">sudo systemctl daemon-reload && sudo systemctl restart docker</code></pre>
 	        </div>
