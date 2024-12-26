@@ -21,7 +21,7 @@ function routeByHosts(host) {
 		"ghcr": "ghcr.io",
 		"cloudsmith": "docker.cloudsmith.io",
 		"nvcr": "nvcr.io",
-		
+
 		// 测试环境
 		"test": "registry-1.docker.io",
 	};
@@ -54,11 +54,14 @@ function makeRes(body, status = 200, headers = {}) {
 /**
  * 构造新的URL对象
  * @param {string} urlStr URL字符串
+ * @param {string} base URL base
  */
-function newUrl(urlStr) {
+function newUrl(urlStr, base) {
 	try {
-		return new URL(urlStr) // 尝试构造新的URL对象
+		console.log(`Constructing new URL object with path ${urlStr} and base ${base}`);
+		return new URL(urlStr, base); // 尝试构造新的URL对象
 	} catch (err) {
+		console.error(err);
 		return null // 构造失败返回null
 	}
 }
@@ -232,16 +235,16 @@ export default {
 
 		const conditions = [
 			isUuid,
-			pathname.includes('/_'),
-			pathname.includes('/r/'),
-			pathname.includes('/v2/repositories'),
-			pathname.includes('/v2/user'),
-			pathname.includes('/v2/orgs'),
-			pathname.includes('/v2/_catalog'),
-			pathname.includes('/v2/categories'),
-			pathname.includes('/v2/feature-flags'),
-			pathname.includes('search'),
-			pathname.includes('source'),
+			pathname.startsWith('/_'),
+			pathname.startsWith('/r/'),
+			pathname.startsWith('/v2/repositories'),
+			pathname.startsWith('/v2/user'),
+			pathname.startsWith('/v2/orgs'),
+			pathname.startsWith('/v2/_catalog'),
+			pathname.startsWith('/v2/categories'),
+			pathname.startsWith('/v2/feature-flags'),
+			pathname.startsWith('/search'),
+			pathname.startsWith('/source'),
 			pathname == '/',
 			pathname == '/favicon.ico',
 			pathname == '/auth/profile',
@@ -355,7 +358,9 @@ export default {
 
 		// 处理重定向
 		if (new_response_headers.get("Location")) {
-			return httpHandler(request, new_response_headers.get("Location"));
+			const location = new_response_headers.get("Location");
+			console.info(`Found redirection location, redirecting to ${location}`);
+			return httpHandler(request, location, hub_host);
 		}
 
 		// 返回修改后的响应
@@ -371,8 +376,9 @@ export default {
  * 处理HTTP请求
  * @param {Request} req 请求对象
  * @param {string} pathname 请求路径
+ * @param {string} baseHost 基地址
  */
-function httpHandler(req, pathname) {
+function httpHandler(req, pathname, baseHost) {
 	const reqHdrRaw = req.headers;
 
 	// 处理预检请求
@@ -390,7 +396,7 @@ function httpHandler(req, pathname) {
 
 	let urlStr = pathname;
 
-	const urlObj = newUrl(urlStr);
+	const urlObj = newUrl(urlStr, 'https://' + baseHost);
 
 	/** @type {RequestInit} */
 	const reqInit = {
