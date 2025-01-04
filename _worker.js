@@ -338,6 +338,11 @@ export default {
 			parameter.headers.Authorization = getReqHeader("Authorization");
 		}
 
+		// 添加可能存在字段x-amz-content-sha256
+		if (request.headers.has("x-amz-content-sha256")) {
+			parameter.headers.Authorization = getReqHeader("x-amz-content-sha256");
+		}
+
 		// 发起请求并处理响应
 		let original_response = await fetch(new Request(url, request), parameter);
 		let original_response_clone = original_response.clone();
