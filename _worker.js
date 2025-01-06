@@ -445,7 +445,7 @@ export default {
 
 		// 添加可能存在字段X-Amz-Content-Sha256
 		if (request.headers.has("X-Amz-Content-Sha256")) {
-			parameters.headers['X-Amz-Content-Sha256'] = getReqHeader("X-Amz-Content-Sha256");
+			parameter.headers['X-Amz-Content-Sha256'] = getReqHeader("X-Amz-Content-Sha256");
 		}
 
 		// 发起请求并处理响应

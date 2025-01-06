@@ -1,8 +1,11 @@
 [**第三方 DockerHub 镜像服务列表**](https://github.com/cmliu/CF-Workers-docker.io?tab=readme-ov-file#%E7%AC%AC%E4%B8%89%E6%96%B9-dockerhub-%E9%95%9C%E5%83%8F%E6%9C%8D%E5%8A%A1)
 
+![img](./img.png)
 # CF-Workers-docker.io：Docker仓库镜像代理工具
 
 这个项目是一个基于 Cloudflare Workers 的 Docker 镜像代理工具。它能够中转对 Docker 官方镜像仓库的请求，解决一些访问限制和加速访问的问题。
+
+> docker.fxxk.dedyn.io 已被GFW污染，请自行部署使用
 
 ## 部署方式
 
@@ -102,20 +105,12 @@ location = "xxxx.xx.com"
  `crictl pull registry.k8s.io/kube-proxy:v1.28.4`
  `docker  pull nginx:1.21`
 
-
-
-
-
-
 ## 变量说明
 | 变量名 | 示例 | 必填 | 备注 | 
 |--|--|--|--|
 | URL302 | https://t.me/CMLiussss |❌| 主页302跳转 |
 | URL | https://www.baidu.com/ |❌| 主页伪装(设为`nginx`则伪装为nginx默认页面) |
 | UA | netcraft |❌| 支持多元素, 元素之间使用空格或换行作间隔 |
-
-
-
 
 # 第三方 DockerHub 镜像服务
 
@@ -146,11 +141,6 @@ location = "xxxx.xx.com"
 | [DaoCloud 镜像站](https://github.com/DaoCloud/public-image-mirror) | `https://docker.m.daocloud.io` |
 | [AtomHub 可信镜像仓库平台](https://atomhub.openatom.cn/) (只包含基础镜像，共336个) | `https://atomhub.openatom.cn` |
 
-
-
-
-
 # 鸣谢
 
 [muzihuaner](https://github.com/muzihuaner)、[V2ex网友](https://global.v2ex.com/t/1007922)、[ciiiii](https://github.com/ciiiii/cloudflare-docker-proxy)、[ChatGPT](https://chatgpt.com/)、[白嫖哥](https://t.me/bestcfipas/1900)、[zero_free频道](https://t.me/zero_free/80)、[dongyubin](https://github.com/cmliu/CF-Workers-docker.io/issues/8)、[kiko923](https://github.com/cmliu/CF-Workers-docker.io/issues/5)
-
