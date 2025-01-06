@@ -343,7 +343,7 @@ export default {
 
 		// 添加可能存在字段x-amz-content-sha256
 		if (request.headers.has("x-amz-content-sha256")) {
-			parameter.headers.Authorization = getReqHeader("x-amz-content-sha256");
+			parameter.headers.x-amz-content-sha256 = getReqHeader("x-amz-content-sha256");
 		}
 
 		// 发起请求并处理响应
