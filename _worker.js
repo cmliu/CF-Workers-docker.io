@@ -378,11 +378,24 @@ export default {
 			});
 		} else if ((userAgent && userAgent.includes('mozilla')) || hubParams.some(param => url.pathname.includes(param))) {
 			if (url.pathname == '/') {
-				return new Response(await searchInterface(), {
-					headers: {
-						'Content-Type': 'text/html; charset=UTF-8',
-					},
-				});
+				if (env.URL302) {
+					return Response.redirect(env.URL302, 302);
+				} else if (env.URL) {
+					if (env.URL.toLowerCase() == 'nginx') {
+						//首页改成一个nginx伪装页
+						return new Response(await nginx(), {
+							headers: {
+								'Content-Type': 'text/html; charset=UTF-8',
+							},
+						});
+					} else return fetch(new Request(env.URL, request));
+				} else	{
+					return new Response(await searchInterface(), {
+						headers: {
+							'Content-Type': 'text/html; charset=UTF-8',
+						},
+					});
+				}
 			} else {
 				url.hostname = 'registry.hub.docker.com';
 				if (url.searchParams.get('q')?.includes('library/') && url.searchParams.get('q') != 'library/') {
