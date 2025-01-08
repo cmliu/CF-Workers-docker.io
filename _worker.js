@@ -368,7 +368,7 @@ export default {
 
 		const fakePage = checkHost ? checkHost[1] : false; // 确保 fakePage 不为 undefined
 		console.log(`域名头部: ${hostTop} 反代地址: ${hub_host} 伪装首页: ${fakePage}`);
-
+		const hubParams = ['/v1/search', '/v1/repositories'];
 		if (屏蔽爬虫UA.some(fxxk => userAgent.includes(fxxk)) && 屏蔽爬虫UA.length > 0) {
 			// 首页改成一个nginx伪装页
 			return new Response(await nginx(), {
@@ -376,7 +376,7 @@ export default {
 					'Content-Type': 'text/html; charset=UTF-8',
 				},
 			});
-		} else if (userAgent && userAgent.includes('mozilla')) {
+		} else if ((userAgent && userAgent.includes('mozilla')) || hubParams.some(param => url.pathname.includes(param))) {
 			if (url.pathname == '/') {
 				return new Response(await searchInterface(), {
 					headers: {
@@ -385,6 +385,10 @@ export default {
 				});
 			} else {
 				url.hostname = 'registry.hub.docker.com';
+				if (url.searchParams.get('q')?.includes('library/') && url.searchParams.get('q') != 'library/') {
+					const search = url.searchParams.get('q');
+					url.searchParams.set('q', search.replace('library/', ''));
+				}
 				const newRequest = new Request(url, request);
 				return fetch(newRequest);
 			}
