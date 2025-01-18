@@ -159,18 +159,57 @@ export default {
 
         url.hostname = hub_host;
 
-        const parameter = {
-            headers: {
-                'Host': hub_host,
-                'User-Agent': getReqHeader("User-Agent"),
-                'Accept': getReqHeader("Accept"),
-                'Accept-Language': getReqHeader("Accept-Language"),
-                'Accept-Encoding': getReqHeader("Accept-Encoding"),
-                'Connection': 'keep-alive',
-                'Cache-Control': 'max-age=0'
-            },
-            cacheTtl: 3600
-        };
+// 性能优化：使用更高效的缓存策略
+const cache = caches.default;
+const cacheKey = new Request(url.toString(), request);
+
+// 检查是否有缓存
+let response = await cache.match(cacheKey);
+if (response) {
+    return response;
+}
+
+// 国内CDN优化配置
+const cdnConfig = {
+    // 协议支持
+    protocols: ['http/1.1', 'http/2', 'h3'],
+    // 连接复用
+    keepAlive: true,
+    // 国内CDN节点优选
+    preferChinaNodes: true
+};
+
+const parameter = {
+    headers: {
+        'Host': hub_host,
+        'User-Agent': getReqHeader("User-Agent"),
+        'Accept': getReqHeader("Accept"),
+        'Accept-Language': getReqHeader("Accept-Language"),
+        'Accept-Encoding': getReqHeader("Accept-Encoding"),
+        'Connection': 'keep-alive',
+        'Cache-Control': 'public, max-age=86400',
+        // 国内CDN专用头
+        'X-CDN-Provider': 'ChinaNetCenter',
+        'X-CDN-Cache': 'HIT',
+        'X-CDN-Edge': 'true'
+    },
+    cf: {
+        cacheEverything: true,
+        cacheTtl: 86400,
+        cacheKey: `${url.pathname}?${url.searchParams.toString()}`,
+        // 国内CDN优化
+        polish: 'lossless',  // 图片优化
+        minify: {           // 资源压缩
+            javascript: true,
+            css: true,
+            html: true
+        },
+        // HTTP/3支持
+        http3: true
+    },
+    // 国内CDN连接优化
+    ...cdnConfig
+};
 
         if (request.headers.has("Authorization")) {
             parameter.headers.Authorization = getReqHeader("Authorization");
@@ -193,10 +232,24 @@ export default {
             return httpHandler(request, new_response_headers.get("Location"));
         }
 
-        return new Response(original_text, {
+        // 创建新的响应并缓存
+        const newResponse = new Response(original_text, {
             status,
             headers: new_response_headers
         });
+
+        // 设置国内CDN缓存头
+        newResponse.headers.set('CDN-Cache-Control', 'public, max-age=86400, s-maxage=86400');
+        newResponse.headers.set('Cache-Tag', `dns-proxy:${hub_host}`);
+        // 添加国内CDN专用头
+        newResponse.headers.set('X-CDN-Status', 'HIT');
+        newResponse.headers.set('X-CDN-Edge-Location', 'CN');
+        newResponse.headers.set('X-CDN-Protocol', 'HTTP/3');
+
+        // 将响应存入缓存
+        ctx.waitUntil(cache.put(cacheKey, newResponse.clone()));
+
+        return newResponse;
     }
 };
 
