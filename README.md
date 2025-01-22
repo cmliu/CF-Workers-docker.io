@@ -1,15 +1,24 @@
 [**第三方 DockerHub 镜像服务列表**](https://github.com/cmliu/CF-Workers-docker.io?tab=readme-ov-file#%E7%AC%AC%E4%B8%89%E6%96%B9-dockerhub-%E9%95%9C%E5%83%8F%E6%9C%8D%E5%8A%A1)
 
-# CF-Workers-docker.io：Docker仓库镜像代理工具
+![img](./img.png)
+# 🐳 CF-Workers-docker.io：Docker仓库镜像代理工具
 
 这个项目是一个基于 Cloudflare Workers 的 Docker 镜像代理工具。它能够中转对 Docker 官方镜像仓库的请求，解决一些访问限制和加速访问的问题。
 
-## 部署方式
+> [!CAUTION]
+> **docker.fxxk.dedyn.io 已被GFW污染，需自行部署使用。**
+
+> [!WARNING]
+> 根据 [Cloudflare 协议](https://www.cloudflare.com/zh-cn/terms/) 中，2.2.1 第 (j) use the Services to provide a virtual private network or other similar proxy services.
+>
+> 使用本服务可能存在被 Cloudflare 封号的潜在风险，请自行斟酌使用风险。
+
+## 🚀 部署方式
 
 - **Workers** 部署：复制 [_worker.js](https://github.com/cmliu/CF-Workers-docker.io/blob/main/_worker.js) 代码，`保存并部署`即可
 - **Pages** 部署：`Fork` 后 `连接GitHub` 一键部署即可
 
-## 如何使用？ [视频教程](https://www.youtube.com/watch?v=l2jwq9CagNQ)
+## ⚙️ 如何使用？ [视频教程](https://www.youtube.com/watch?v=l2jwq9CagNQ)
 
 例如您的Workers项目域名为：`docker.fxxk.dedyn.io`；
 
@@ -60,7 +69,7 @@ insecure = true
 location = "registry-1.docker.io"
 
 [[registry.mirror]]
-location = "https://xxxx.onrender.com"
+location = "xxxx.xx.com"
 
 [[registry]]
 prefix = "k8s.gcr.io"
@@ -68,7 +77,7 @@ insecure = true
 location = "k8s.gcr.io"
 
 [[registry.mirror]]
-location = "https://xxxx.onrender.com"
+location = "xxxx.xx.com"
 
 [[registry]]
 prefix = "gcr.io"
@@ -76,7 +85,7 @@ insecure = true
 location = "gcr.io"
 
 [[registry.mirror]]
-location = "https://xxxx.onrender.com"
+location = "xxxx.xx.com"
 
 [[registry]]
 prefix = "ghcr.io"
@@ -84,7 +93,7 @@ insecure = true
 location = "ghcr.io"
 
 [[registry.mirror]]
-location = "https://xxxx.onrender.com"
+location = "xxxx.xx.com"
 
 [[registry]]
 prefix = "quay.io"
@@ -92,7 +101,7 @@ insecure = true
 location = "quay.io"
 
 [[registry.mirror]]
-location = "https://xxxx.onrender.com"
+location = "xxxx.xx.com"
 
 ```
 
@@ -102,22 +111,14 @@ location = "https://xxxx.onrender.com"
  `crictl pull registry.k8s.io/kube-proxy:v1.28.4`
  `docker  pull nginx:1.21`
 
-
-
-
-
-
-## 变量说明
+## 🔧 变量说明
 | 变量名 | 示例 | 必填 | 备注 | 
 |--|--|--|--|
-| URL302 | https://t.me/CMLiussss |❌| 主页302跳转 |
-| URL | https://www.baidu.com/ |❌| 主页伪装(设为`nginx`则伪装为nginx默认页面) |
-| UA | netcraft |❌| 支持多元素, 元素之间使用空格或换行作间隔 |
+| URL302 | `https://t.me/CMLiussss` |❌| 主页302跳转 |
+| URL | `https://www.baidu.com/` |❌| 主页伪装(设为`nginx`则伪装为nginx默认页面) |
+| UA | `netcraft` |❌| 支持多元素, 元素之间使用空格或换行作间隔 |
 
-
-
-
-# 第三方 DockerHub 镜像服务
+# 🛠️ 第三方 DockerHub 镜像服务
 
 **注意:**
 - 以下内容仅做镜像服务的整理与搜集，未做任何安全性检测和验证。
@@ -146,11 +147,6 @@ location = "https://xxxx.onrender.com"
 | [DaoCloud 镜像站](https://github.com/DaoCloud/public-image-mirror) | `https://docker.m.daocloud.io` |
 | [AtomHub 可信镜像仓库平台](https://atomhub.openatom.cn/) (只包含基础镜像，共336个) | `https://atomhub.openatom.cn` |
 
-
-
-
-
-# 鸣谢
+# 🙏 鸣谢
 
 [muzihuaner](https://github.com/muzihuaner)、[V2ex网友](https://global.v2ex.com/t/1007922)、[ciiiii](https://github.com/ciiiii/cloudflare-docker-proxy)、[ChatGPT](https://chatgpt.com/)、[白嫖哥](https://t.me/bestcfipas/1900)、[zero_free频道](https://t.me/zero_free/80)、[dongyubin](https://github.com/cmliu/CF-Workers-docker.io/issues/8)、[kiko923](https://github.com/cmliu/CF-Workers-docker.io/issues/5)
-
