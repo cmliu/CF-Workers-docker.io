@@ -515,6 +515,8 @@ function httpHandler(req, pathname, baseHost) {
 
 	const reqHdrNew = new Headers(reqHdrRaw);
 
+        reqHdrNew.delete("Authorization");
+	
 	const refer = reqHdrNew.get('referer');
 
 	let urlStr = pathname;
