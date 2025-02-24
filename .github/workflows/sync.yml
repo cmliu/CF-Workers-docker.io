@@ -1,0 +1,36 @@
+            - name: Upstream Sync
+  # You may pin to the exact commit or the version.
+  # uses: aormsby/Fork-Sync-With-Upstream-action@1090e365224fc834e7e1de521c417ded2d6fcb53
+  uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
+  with:
+    # Branch receiving updates from the upstream repo, e.g. => main, master, prod
+    target_sync_branch: 
+    # Input for passing secrets.GITHUB_TOKEN when disabling persistent auth in the checkout step
+    target_repo_token: 
+    # Token for accessing the remote repo through HTTPS authentication
+    upstream_repo_access_token: # optional
+    # Upstream repository, e.g. => aormsby/Fork-Sync-With-Upstream-action
+    upstream_sync_repo: 
+    # Branch to sync from, e.g. => main, master, dev
+    upstream_sync_branch: 
+    # Any extra args to pass to `git checkout` on the source branch, e.g. --recurse-submodules :: default = ""
+    target_branch_checkout_args: # optional, default is 
+    # Args to print the list of new commits from upstream :: default = --pretty=oneline
+    git_log_format_args: # optional, default is --pretty=oneline
+    # Git args passed when running `git pull` against the upstream repo, e.g. --ff-only or --tags :: default = ""
+    upstream_pull_args: # optional, default is 
+    # Git args passed when running `git push` to apply changes to the source repo, e.g. --force :: default = ""
+    target_branch_push_args: # optional, default is 
+    # Git user credentials for sigining commit, (set to "null" for no config)
+    git_config_user: # default is GH Action - Upstream Sync
+    # Git email credentials for sigining commit (set to "null" for no config)
+    git_config_email: # default is action@github.com
+    # Git config for "pull.rebase" settings, usually recommend false for this action (set to "null" for no config)
+    git_config_pull_rebase: # default is false
+    # If set to 'true', runs verification test on all inputs and any testable actions that use them
+    test_mode: # default is false
+    # Domain name to be used in upstream repo URL.
+    host_domain: # default is github.com
+    # Length of time used when fetching shallow repo data, should match how often you perform a sync
+    shallow_since: # default is 1 month ago
+          
