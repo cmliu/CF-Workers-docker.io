@@ -1,6 +1,7 @@
 [**第三方 DockerHub 镜像服务列表**](https://github.com/cmliu/CF-Workers-docker.io?tab=readme-ov-file#%E7%AC%AC%E4%B8%89%E6%96%B9-dockerhub-%E9%95%9C%E5%83%8F%E6%9C%8D%E5%8A%A1)
 
-![img](./img.png)
+![CF-Workers-docker.io](./img.png)
+
 # 🐳 CF-Workers-docker.io：Docker仓库镜像代理工具
 
 这个项目是一个基于 Cloudflare Workers 的 Docker 镜像代理工具。它能够中转对 Docker 官方镜像仓库的请求，解决一些访问限制和加速访问的问题。
@@ -23,15 +24,19 @@
 例如您的Workers项目域名为：`docker.cmliussss.net`；
 
 ### 1.官方镜像路径前面加域名
+
 ```shell
 docker pull docker.cmliussss.net/stilleshan/frpc:latest
 ```
+
 ```shell
 docker pull docker.cmliussss.net/library/nginx:stable-alpine3.19-perl
 ```
 
 ### 2.一键设置镜像加速
+
 修改文件 `/etc/docker/daemon.json`（如果不存在则创建）
+
 ```shell
 sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json <<-'EOF'
@@ -42,13 +47,19 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl restart docker
 ```
+
 ### 3. 配置常见仓库的镜像加速
-#### 3.1 配置  
-Containerd 较简单，它支持任意 `registry` 的 `mirror`，只需要修改配置文件 `/etc/containerd/config.toml`，添加如下的配置：  
+
+#### 3.1 配置
+
+`Containerd` 较简单，它支持任意 `registry` 的 `mirror`，只需要修改配置文件 `/etc/containerd/config.toml`，添加如下的配置：
+
 ```yaml
     [plugins."io.containerd.grpc.v1.cri".registry]
       [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
+          endpoint = ["https://xxxx.xx.com"]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.k8s.io"]
           endpoint = ["https://xxxx.xx.com"]
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."k8s.gcr.io"]
           endpoint = ["https://xxxx.xx.com"]
@@ -59,7 +70,9 @@ Containerd 较简单，它支持任意 `registry` 的 `mirror`，只需要修改
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."quay.io"]
           endpoint = ["https://xxxx.xx.com"]
 ```
-`Podman` 同样支持任意 `registry` 的 `mirror`，修改配置文件 `/etc/containers/registries.conf`，添加配置：  
+
+`Podman` 同样支持任意 `registry` 的 `mirror`，修改配置文件 `/etc/containers/registries.conf`，添加配置：
+
 ```yaml
 unqualified-search-registries = ['docker.io', 'k8s.gcr.io', 'gcr.io', 'ghcr.io', 'quay.io']
 
@@ -67,6 +80,14 @@ unqualified-search-registries = ['docker.io', 'k8s.gcr.io', 'gcr.io', 'ghcr.io',
 prefix = "docker.io"
 insecure = true
 location = "registry-1.docker.io"
+
+[[registry.mirror]]
+location = "xxxx.xx.com"
+
+[[registry]]
+prefix = "registry.k8s.io"
+insecure = true
+location = "registry.k8s.io"
 
 [[registry.mirror]]
 location = "xxxx.xx.com"
@@ -106,13 +127,18 @@ location = "xxxx.xx.com"
 ```
 
 #### 3.3 使用
-对于以上配置，k8s在使用的时候，就可以直接`pull`外部无法pull的镜像了 
- 手动可以直接`pull` 配置了`mirror`的仓库  
- `crictl pull registry.k8s.io/kube-proxy:v1.28.4`
- `docker  pull nginx:1.21`
+
+对于以上配置，k8s 在使用的时候，就可以直接 `pull` 外部无法 pull 的镜像了。
+
+```shell
+# 手动可以直接pull配置了mirror的仓库
+crictl pull registry.k8s.io/kube-proxy:v1.28.4
+docker  pull nginx:1.21
+```
 
 ## 🔧 变量说明
-| 变量名 | 示例 | 必填 | 备注 | 
+
+| 变量名 | 示例 | 必填 | 备注 |
 |--|--|--|--|
 | URL302 | `https://t.me/CMLiussss` |❌| 主页302跳转 |
 | URL | `https://www.baidu.com/` |❌| 主页伪装(设为`nginx`则伪装为nginx默认页面) |
@@ -121,6 +147,7 @@ location = "xxxx.xx.com"
 # 🛠️ 第三方 DockerHub 镜像服务
 
 **注意:**
+
 - 以下内容仅做镜像服务的整理与搜集，未做任何安全性检测和验证。
 - 使用前请自行斟酌，并根据实际需求进行必要的安全审查。
 - 本列表中的任何服务都不做任何形式的安全承诺或保证。
