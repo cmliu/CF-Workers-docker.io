@@ -105,8 +105,15 @@ async function searchInterface() {
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<style>
 		:root {
-			--github-color: #f0f6fc;
-			--githubbj-color: #010409;
+			--github-color: rgb(27,86,198);
+			--github-bg-color: #ffffff;
+			--primary-color: #0066ff;
+			--primary-dark: #0052cc;
+			--gradient-start: #1a90ff;
+			--gradient-end: #003eb3;
+			--text-color: #ffffff;
+			--shadow-color: rgba(0,0,0,0.1);
+			--transition-time: 0.3s;
 		}
 		
 		* {
@@ -119,24 +126,32 @@ async function searchInterface() {
 			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 			display: flex;
 			flex-direction: column;
-			justify-content: center; // 新增
+			justify-content: center;
 			align-items: center;
 			min-height: 100vh;
 			margin: 0;
-			background: linear-gradient(120deg, #1a90ff 0%, #003eb3 100%);
+			background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
 			padding: 20px;
+			color: var(--text-color);
+			overflow-x: hidden;
 		}
 
 		.container {
 			text-align: center;
 			width: 100%;
 			max-width: 800px;
-			padding: 0 20px;
-			margin: 0 auto; // 修改
-			display: flex; // 新增
-			flex-direction: column; // 新增
-			justify-content: center; // 新增
-			min-height: 70vh; // 新增
+			padding: 20px;
+			margin: 0 auto;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			min-height: 60vh;
+			animation: fadeIn 0.8s ease-out;
+		}
+
+		@keyframes fadeIn {
+			from { opacity: 0; transform: translateY(20px); }
+			to { opacity: 1; transform: translateY(0); }
 		}
 
 		.github-corner {
@@ -144,10 +159,15 @@ async function searchInterface() {
 			top: 0;
 			right: 0;
 			z-index: 999;
+			transition: transform var(--transition-time) ease;
+		}
+		
+		.github-corner:hover {
+			transform: scale(1.08);
 		}
 
 		.github-corner svg {
-			fill: var(githubbj-color);
+			fill: var(--github-bg-color);
 			color: var(--github-color);
 			position: absolute;
 			top: 0;
@@ -155,127 +175,160 @@ async function searchInterface() {
 			right: 0;
 			width: 80px;
 			height: 80px;
-		}
-
-		.github-corner a,
-		.github-corner a:visited {
-		color: var(--github-color) !important;
-		}
-
-		.github-corner a,
-		.github-corner a:visited {
-		color: transparent !important;
-		text-decoration: none !important;
-		}
-
-		.github-corner .octo-body,
-		.github-corner .octo-arm {
-		fill: var(--github-color) !important;
-		}
-
-		.github-corner:hover .octo-arm {
-			animation: octocat-wave 560ms ease-in-out;
-		}
-			
-		@keyframes octocat-wave {
-			0%, 100% {
-				transform: rotate(0);
-			}
-			20%, 60% {
-				transform: rotate(-25deg);
-			}
-			40%, 80% {
-				transform: rotate(10deg);
-			}
+			filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
 		}
 
 		.logo {
-			margin-bottom: 30px;
-			transition: transform 0.3s ease;
+			margin-bottom: 20px;
+			transition: transform var(--transition-time) ease;
+			animation: float 6s ease-in-out infinite;
 		}
+		
+		@keyframes float {
+			0%, 100% { transform: translateY(0); }
+			50% { transform: translateY(-10px); }
+		}
+		
 		.logo:hover {
-			transform: scale(1.05);
+			transform: scale(1.08) rotate(5deg);
 		}
+		
+		.logo svg {
+			filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.2));
+		}
+		
 		.title {
-			color: white;
-			font-size: 2em;
+			color: var(--text-color);
+			font-size: 2.3em;
 			margin-bottom: 10px;
-			text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+			text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+			font-weight: 700;
+			letter-spacing: -0.5px;
+			animation: slideInFromTop 0.5s ease-out 0.2s both;
 		}
+		
+		@keyframes slideInFromTop {
+			from { opacity: 0; transform: translateY(-20px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+		
 		.subtitle {
-			color: rgba(255,255,255,0.9);
+			color: rgba(255, 255, 255, 0.9);
 			font-size: 1.1em;
-			margin-bottom: 30px;
+			margin-bottom: 25px;
+			max-width: 600px;
+			margin-left: auto;
+			margin-right: auto;
+			line-height: 1.4;
+			animation: slideInFromTop 0.5s ease-out 0.4s both;
 		}
+		
 		.search-container {
 			display: flex;
 			align-items: stretch;
 			width: 100%;
 			max-width: 600px;
 			margin: 0 auto;
-			height: 50px;
+			height: 55px;
+			position: relative;
+			animation: slideInFromBottom 0.5s ease-out 0.6s both;
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+			border-radius: 12px;
+			overflow: hidden;
 		}
-		#search-input {
-			flex: 1;
-			padding: 15px 20px;
-			font-size: 16px;
-			border: none;
-			border-radius: 8px 0 0 8px;
-			outline: none;
-			box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-			transition: all 0.3s ease;
+		
+		@keyframes slideInFromBottom {
+			from { opacity: 0; transform: translateY(20px); }
+			to { opacity: 1; transform: translateY(0); }
 		}
+		
 		#search-input {
 			flex: 1;
 			padding: 0 20px;
 			font-size: 16px;
 			border: none;
-			border-radius: 8px 0 0 8px;
 			outline: none;
-			box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-			transition: all 0.3s ease;
+			transition: all var(--transition-time) ease;
 			height: 100%;
 		}
+		
+		#search-input:focus {
+			padding-left: 25px;
+		}
+		
 		#search-button {
-			padding: 0 25px;
-			background-color: #0066ff;
+			width: 60px;
+			background-color: var(--primary-color);
 			border: none;
-			border-radius: 0 8px 8px 0;
 			cursor: pointer;
-			transition: all 0.3s ease;
+			transition: all var(--transition-time) ease;
 			height: 100%;
 			display: flex;
 			align-items: center;
 			justify-content: center;
+			position: relative;
 		}
-		#search-button:hover {
-			background-color: #0052cc;
-			transform: translateY(-1px);
-		}
+		
 		#search-button svg {
-			width: 24px;
-			height: 24px;
+			transition: transform 0.3s ease;
+			stroke: white;
 		}
+		
+		#search-button:hover {
+			background-color: var(--primary-dark);
+		}
+		
+		#search-button:hover svg {
+			transform: translateX(2px);
+		}
+		
+		#search-button:active svg {
+			transform: translateX(4px);
+		}
+		
 		.tips {
-			color: rgba(255,255,255,0.8);
+			color: rgba(255, 255, 255, 0.8);
 			margin-top: 20px;
 			font-size: 0.9em;
+			animation: fadeIn 0.5s ease-out 0.8s both;
+			transition: transform var(--transition-time) ease;
 		}
+		
+		.tips:hover {
+			transform: translateY(-2px);
+		}
+		
+		@media (max-width: 768px) {
+			.container {
+				padding: 20px 15px;
+				min-height: 60vh;
+			}
+			
+			.title {
+				font-size: 2em;
+			}
+			
+			.subtitle {
+				font-size: 1em;
+				margin-bottom: 20px;
+			}
+			
+			.search-container {
+				height: 50px;
+			}
+		}
+		
 		@media (max-width: 480px) {
 			.container {
-				padding: 0 15px;
-				min-height: 60vh; // 新增
+				padding: 15px 10px;
+				min-height: 60vh;
 			}
+			
 			.github-corner svg {
 				width: 60px;
 				height: 60px;
 			}
-			.github-corner:hover .octo-arm {
-				animation: none;
-			}
-			.github-corner .octo-arm {
-				animation: octocat-wave 560ms ease-in-out;
-			}
+			
 			.search-container {
 				height: 45px;
 			}
@@ -285,7 +338,22 @@ async function searchInterface() {
 			}
 			
 			#search-button {
-				padding: 0 20px;
+				width: 50px;
+			}
+			
+			#search-button svg {
+				width: 18px;
+				height: 18px;
+			}
+			
+			.title {
+				font-size: 1.7em;
+				margin-bottom: 8px;
+			}
+			
+			.subtitle {
+				font-size: 0.95em;
+				margin-bottom: 18px;
 			}
 		}
 		</style>
@@ -300,7 +368,7 @@ async function searchInterface() {
 		</a>
 		<div class="container">
 			<div class="logo">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 18" fill="#ffffff" width="120" height="90">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 18" fill="#ffffff" width="110" height="85">
 					<path d="M23.763 6.886c-.065-.053-.673-.512-1.954-.512-.32 0-.659.03-1.01.087-.248-1.703-1.651-2.533-1.716-2.57l-.345-.2-.227.328a4.596 4.596 0 0 0-.611 1.433c-.23.972-.09 1.884.403 2.666-.596.331-1.546.418-1.744.42H.752a.753.753 0 0 0-.75.749c-.007 1.456.233 2.864.692 4.07.545 1.43 1.355 2.483 2.409 3.13 1.181.725 3.104 1.14 5.276 1.14 1.016 0 2.03-.092 2.93-.266 1.417-.273 2.705-.742 3.826-1.391a10.497 10.497 0 0 0 2.61-2.14c1.252-1.42 1.998-3.005 2.553-4.408.075.003.148.005.221.005 1.371 0 2.215-.55 2.68-1.01.505-.5.685-.998.704-1.053L24 7.076l-.237-.19Z"></path>
 					<path d="M2.216 8.075h2.119a.186.186 0 0 0 .185-.186V6a.186.186 0 0 0-.185-.186H2.216A.186.186 0 0 0 2.031 6v1.89c0 .103.083.186.185.186Zm2.92 0h2.118a.185.185 0 0 0 .185-.186V6a.185.185 0 0 0-.185-.186H5.136A.185.185 0 0 0 4.95 6v1.89c0 .103.083.186.186.186Zm2.964 0h2.118a.186.186 0 0 0 .185-.186V6a.186.186 0 0 0-.185-.186H8.1A.185.185 0 0 0 7.914 6v1.89c0 .103.083.186.186.186Zm2.928 0h2.119a.185.185 0 0 0 .185-.186V6a.185.185 0 0 0-.185-.186h-2.119a.186.186 0 0 0-.185.186v1.89c0 .103.083.186.185.186Zm-5.892-2.72h2.118a.185.185 0 0 0 .185-.186V3.28a.186.186 0 0 0-.185-.186H5.136a.186.186 0 0 0-.186.186v1.89c0 .103.083.186.186.186Zm2.964 0h2.118a.186.186 0 0 0 .185-.186V3.28a.186.186 0 0 0-.185-.186H8.1a.186.186 0 0 0-.186.186v1.89c0 .103.083.186.186.186Zm2.928 0h2.119a.185.185 0 0 0 .185-.186V3.28a.186.186 0 0 0-.185-.186h-2.119a.186.186 0 0 0-.185.186v1.89c0 .103.083.186.185.186Zm0-2.72h2.119a.186.186 0 0 0 .185-.186V.56a.185.185 0 0 0-.185-.186h-2.119a.186.186 0 0 0-.185.186v1.89c0 .103.083.186.185.186Zm2.955 5.44h2.118a.185.185 0 0 0 .186-.186V6a.185.185 0 0 0-.186-.186h-2.118a.185.185 0 0 0-.185.186v1.89c0 .103.083.186.185.186Z"></path>
 				</svg>
@@ -310,12 +378,12 @@ async function searchInterface() {
 			<div class="search-container">
 				<input type="text" id="search-input" placeholder="输入关键词搜索镜像，如: nginx, mysql, redis...">
 				<button id="search-button" title="搜索">
-					<svg focusable="false" aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-						<path d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+					<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path d="M13 5l7 7-7 7M5 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
 					</svg>
 				</button>
 			</div>
-			<p class="tips">提示：按回车键快速搜索</p>
+			<p class="tips">基于 Cloudflare Workers / Pages 构建，利用全球边缘网络实现毫秒级响应。</p>
 		</div>
 		<script>
 		function performSearch() {
@@ -330,6 +398,11 @@ async function searchInterface() {
 			if (event.key === 'Enter') {
 				performSearch();
 			}
+		});
+
+		// 添加焦点在搜索框
+		window.addEventListener('load', function() {
+			document.getElementById('search-input').focus();
 		});
 		</script>
 	</body>
