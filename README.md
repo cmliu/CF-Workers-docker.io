@@ -175,5 +175,15 @@ docker  pull nginx:1.21
 | [AtomHub 可信镜像仓库平台](https://atomhub.openatom.cn/) (只包含基础镜像，共336个) | `https://atomhub.openatom.cn` |
 
 # 🙏 鸣谢
+### 💖 赞助支持 - 提供云服务器
+- [![digitalvirt.com](https://digitalvirt.com/templates/BlueWhite/img/logo-dark.svg)](https://url.cmliussss.com/dv)
 
-[muzihuaner](https://github.com/muzihuaner)、[V2ex网友](https://global.v2ex.com/t/1007922)、[ciiiii](https://github.com/ciiiii/cloudflare-docker-proxy)、[ChatGPT](https://chatgpt.com/)、[白嫖哥](https://t.me/bestcfipas/1900)、[zero_free频道](https://t.me/zero_free/80)、[dongyubin](https://github.com/cmliu/CF-Workers-docker.io/issues/8)、[kiko923](https://github.com/cmliu/CF-Workers-docker.io/issues/5)
+### 🛠 开源代码引用
+- [muzihuaner](https://github.com/muzihuaner)
+- [V2ex网友](https://global.v2ex.com/t/1007922)
+- [ciiiii](https://github.com/ciiiii/cloudflare-docker-proxy)
+- [ChatGPT](https://chatgpt.com/)
+- [白嫖哥](https://t.me/bestcfipas/1900)
+- [zero_free频道](https://t.me/zero_free/80)
+- [dongyubin](https://github.com/cmliu/CF-Workers-docker.io/issues/8)
+- [kiko923](https://github.com/cmliu/CF-Workers-docker.io/issues/5)
