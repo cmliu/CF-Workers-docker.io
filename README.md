@@ -154,8 +154,9 @@ docker  pull nginx:1.21
 
 | DockerHub 镜像仓库 | 镜像加地址 |
 | ------------------ | ----------- |
-| [bestcfipas 镜像服务](https://t.me/bestip_one/145898) | `https://registry.lfree.org` |
+| [bestcfipas 镜像服务](https://t.me/bestcfipas/4018) | `https://registry.lfree.org` |
 | [zero_free 镜像服务](https://t.me/zero_free/80) | `https://docker.jsdelivr.fyi` |
+|  | `https://docker.aeko.cn` |
 | [mingyu 镜像服务](https://github.com/ymyuuu/HubP) | `https://hubp.de` |
 | [Docker 镜像加速站](https://docker.1panel.live)  | `https://docker.1panel.live` |
 | [Hub Proxy](https://hub.rat.dev) | `https://hub.rat.dev` |
