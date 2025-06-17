@@ -154,25 +154,12 @@ docker  pull nginx:1.21
 
 | DockerHub 镜像仓库 | 镜像加地址 |
 | ------------------ | ----------- |
-| [bestcfipas镜像服务](https://t.me/bestcfipas/1900) | `https://docker.registry.cyou` |
-|  | `https://docker-cf.registry.cyou` |
-| [zero_free镜像服务](https://t.me/zero_free/80) | `https://docker.jsdelivr.fyi` |
-|  | `https://dockercf.jsdelivr.fyi` |
-|  | `https://dockertest.jsdelivr.fyi` |
-| [docker proxy](https://dockerpull.com/) | `https://dockerpull.com` |
-| [docker proxy](https://dockerproxy.cn/) | `https://dockerproxy.cn` |
-| [Docker镜像加速站](https://hub.uuuadc.top/) | `https://hub.uuuadc.top` |
-|  | `https://docker.1panel.live` |
-|  | `https://hub.rat.dev` |
-| [DockerHub 镜像加速代理](https://docker.anyhub.us.kg/) | `https://docker.anyhub.us.kg` |
-|  | `https://docker.chenby.cn` |
-|  | `https://dockerhub.jobcher.com` |
-| [镜像使用说明](https://dockerhub.icu/) | `https://dockerhub.icu` |
-| [Docker镜像加速站](https://docker.ckyl.me/) | `https://docker.ckyl.me` |
-| [镜像使用说明](https://docker.awsl9527.cn/) | `https://docker.awsl9527.cn` |
-| [镜像使用说明](https://docker.hpcloud.cloud/) | `https://docker.hpcloud.cloud` |
+| [bestcfipas 镜像服务](https://t.me/bestip_one/145898) | `https://registry.lfree.org` |
+| [zero_free 镜像服务](https://t.me/zero_free/80) | `https://docker.jsdelivr.fyi` |
+| [mingyu 镜像服务](https://github.com/ymyuuu/HubP) | `https://hubp.de` |
+| [Docker 镜像加速站](https://docker.1panel.live)  | `https://docker.1panel.live` |
+| [Hub Proxy](https://hub.rat.dev) | `https://hub.rat.dev` |
 | [DaoCloud 镜像站](https://github.com/DaoCloud/public-image-mirror) | `https://docker.m.daocloud.io` |
-| [AtomHub 可信镜像仓库平台](https://atomhub.openatom.cn/) (只包含基础镜像，共336个) | `https://atomhub.openatom.cn` |
 
 # 🙏 鸣谢
 ### 💖 赞助支持 - 提供云服务器
