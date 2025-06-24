@@ -1,7 +1,7 @@
 // _worker.js
 
 // Docker镜像仓库主机地址
-let hub_host = 'registry-1.docker.io';
+// let hub_host = 'registry-1.docker.io';
 // Docker认证服务器地址
 const auth_url = 'https://auth.docker.io';
 
@@ -19,13 +19,18 @@ function routeByHosts(host) {
 		"ghcr": "ghcr.io",
 		"cloudsmith": "docker.cloudsmith.io",
 		"nvcr": "nvcr.io",
-
+        "docker": "registry-1.docker.io",
+		"n8n":"docker.n8n.io",
 		// 测试环境
 		"test": "registry-1.docker.io",
 	};
 
-	if (host in routes) return [routes[host], false];
-	else return [hub_host, true];
+    // 如果主机在路由表中，返回对应的上游地址和 false (表示不是伪装页面)
+    // 否则，返回默认的 hub_host (在这里是 'registry-1.docker.io'，如果上面没改) 和 true
+    // 注意：这里应该有一个默认的 hub_host 变量，如果不由 routeByHosts 决定的话
+    let default_hub_host = 'registry-1.docker.io'; // 确保有一个默认值
+    if (host in routes) return [routes[host], false]; 
+    else return [default_hub_host, true]; // 或者你希望的默认行为
 }
 
 /** @type {RequestInit} */
@@ -55,13 +60,13 @@ function makeRes(body, status = 200, headers = {}) {
  * @param {string} base URL base
  */
 function newUrl(urlStr, base) {
-	try {
-		console.log(`Constructing new URL object with path ${urlStr} and base ${base}`);
-		return new URL(urlStr, base); // 尝试构造新的URL对象
-	} catch (err) {
-		console.error(err);
-		return null // 构造失败返回null
-	}
+    try {
+        console.log(`Constructing new URL object with path ${urlStr} and base ${base}`);
+        return new URL(urlStr, base);
+    } catch (err) {
+        console.error(`Error constructing URL: ${err}, path: ${urlStr}, base: ${base}`);
+        return null; // 返回 null 以便调用者处理
+    }
 }
 
 async function nginx() {
@@ -411,199 +416,233 @@ async function searchInterface() {
 	return html;
 }
 
+/**
+ * 统一处理将要返回给客户端的响应头
+ * @param {Headers} originalUpstreamHeaders - 从上游服务器获取的原始头
+ * @param {string} clientFacingWorkerHostname - 当前 Worker 的公开主机名 (e.g., "n8n.dpp.worker.l0op.com")
+ * @param {string} upstreamAuthHostToRewrite - 需要被重写的上游认证主机 (e.g., "https://auth.docker.io")
+ */
+function finalizeHeadersForClient(originalUpstreamHeaders, clientFacingWorkerHostname, upstreamAuthHostToRewrite) {
+    const newHeaders = new Headers(originalUpstreamHeaders);
+    const clientFacingWorkerUrl = `https://${clientFacingWorkerHostname}`;
+
+    // 1. 重写 Www-Authenticate 头
+    const wwwAuthHeader = newHeaders.get("Www-Authenticate");
+    if (wwwAuthHeader) {
+        const realmRegex = /(realm=")([^"]+)(")/i; // case-insensitive
+        const realmMatch = wwwAuthHeader.match(realmRegex);
+        if (realmMatch && realmMatch[1] && realmMatch[2] && realmMatch[3]) {
+            const originalRealmUrl = realmMatch[2]; // 例如 "https://auth.docker.io/token"
+            if (originalRealmUrl.toLowerCase().startsWith(upstreamAuthHostToRewrite.toLowerCase())) {
+                const pathAfterHost = originalRealmUrl.substring(upstreamAuthHostToRewrite.length); // 例如 "/token"
+                const newRealmUrl = clientFacingWorkerUrl + pathAfterHost;
+                const modifiedAuthHeader = wwwAuthHeader.replace(originalRealmUrl, newRealmUrl);
+                newHeaders.set("Www-Authenticate", modifiedAuthHeader);
+                console.log(`[finalizeHeadersForClient] Rewrote Www-Authenticate realm from "${originalRealmUrl}" to "${newRealmUrl}"`);
+            } else {
+                 console.log(`[finalizeHeadersForClient] Www-Authenticate realm "${originalRealmUrl}" does not start with "${upstreamAuthHostToRewrite}", not rewriting.`);
+            }
+        }
+    }
+
+    // 2. 重写 Location 头 (如果需要确保重定向也指向 Worker)
+    //    当前的 httpHandler 会尝试代理 Location 指向的地址，所以主要确保该代理请求的响应也经过 finalizeHeadersForClient
+    //    如果想让客户端直接收到指向 worker 的 Location，逻辑会更复杂。
+    //    暂时保持 httpHandler 的逻辑，它会重新进入代理流程。
+
+    // 设置通用的 CORS 和其他安全相关的头
+    newHeaders.set('access-control-expose-headers', '*');
+    newHeaders.set('access-control-allow-origin', '*');
+    newHeaders.delete('content-security-policy');
+    newHeaders.delete('content-security-policy-report-only');
+    newHeaders.delete('clear-site-data');
+    
+    // 可以设置一个默认的缓存策略，但上游的 Cache-Control 可能更合适
+    if (!newHeaders.has('Cache-Control')) {
+        newHeaders.set('Cache-Control', 'max-age=1500');
+    }
+
+    return newHeaders;
+}
+
 export default {
-	async fetch(request, env, ctx) {
-		const getReqHeader = (key) => request.headers.get(key); // 获取请求头
+    async fetch(request, env, ctx) {
+        const requestUrlObject = new URL(request.url);
+        const clientFacingWorkerHostname = requestUrlObject.hostname; // Worker 的主机名
 
-		let url = new URL(request.url); // 解析请求URL
-		const userAgentHeader = request.headers.get('User-Agent');
-		const userAgent = userAgentHeader ? userAgentHeader.toLowerCase() : "null";
-		if (env.UA) 屏蔽爬虫UA = 屏蔽爬虫UA.concat(await ADD(env.UA));
-		const workers_url = `https://${url.hostname}`;
+        const getReqHeader = (key) => request.headers.get(key);
 
-		// 获取请求参数中的 ns
-		const ns = url.searchParams.get('ns');
-		const hostname = url.searchParams.get('hubhost') || url.hostname;
-		const hostTop = hostname.split('.')[0]; // 获取主机名的第一部分
+        let hub_host_for_upstream; // 将用于请求上游的实际主机名
+        let shouldServeFakePage = false; // 是否显示伪装页面
 
-		let checkHost; // 在这里定义 checkHost 变量
-		// 如果存在 ns 参数，优先使用它来确定 hub_host
-		if (ns) {
-			if (ns === 'docker.io') {
-				hub_host = 'registry-1.docker.io'; // 设置上游地址为 registry-1.docker.io
-			} else {
-				hub_host = ns; // 直接使用 ns 作为 hub_host
-			}
-		} else {
-			checkHost = routeByHosts(hostTop);
-			hub_host = checkHost[0]; // 获取上游地址
-		}
+        const nsParam = requestUrlObject.searchParams.get('ns');
+        const hubhostParam = requestUrlObject.searchParams.get('hubhost');
+        // 路由主机名决定用哪个参数，或者 worker 自身的主机名
+        const hostnameForRoutingLogic = hubhostParam || clientFacingWorkerHostname; 
+        const hostTopForRouting = hostnameForRoutingLogic.split('.')[0];
 
-		const fakePage = checkHost ? checkHost[1] : false; // 确保 fakePage 不为 undefined
-		console.log(`域名头部: ${hostTop} 反代地址: ${hub_host} searchInterface: ${fakePage}`);
-		// 更改请求的主机名
-		url.hostname = hub_host;
-		const hubParams = ['/v1/search', '/v1/repositories'];
-		if (屏蔽爬虫UA.some(fxxk => userAgent.includes(fxxk)) && 屏蔽爬虫UA.length > 0) {
-			// 首页改成一个nginx伪装页
-			return new Response(await nginx(), {
-				headers: {
-					'Content-Type': 'text/html; charset=UTF-8',
-				},
-			});
-		} else if ((userAgent && userAgent.includes('mozilla')) || hubParams.some(param => url.pathname.includes(param))) {
-			if (url.pathname == '/') {
-				if (env.URL302) {
-					return Response.redirect(env.URL302, 302);
-				} else if (env.URL) {
-					if (env.URL.toLowerCase() == 'nginx') {
-						//首页改成一个nginx伪装页
-						return new Response(await nginx(), {
-							headers: {
-								'Content-Type': 'text/html; charset=UTF-8',
-							},
-						});
-					} else return fetch(new Request(env.URL, request));
-				} else	{
-					if (fakePage) return new Response(await searchInterface(), {
-						headers: {
-							'Content-Type': 'text/html; charset=UTF-8',
-						},
-					});
-				}
-			} else {
-				if (fakePage) url.hostname = 'hub.docker.com';
-				if (url.searchParams.get('q')?.includes('library/') && url.searchParams.get('q') != 'library/') {
-					const search = url.searchParams.get('q');
-					url.searchParams.set('q', search.replace('library/', ''));
-				}
-				const newRequest = new Request(url, request);
-				return fetch(newRequest);
-			}
-		}
+        if (nsParam) {
+            hub_host_for_upstream = (nsParam === 'docker.io') ? 'registry-1.docker.io' : nsParam;
+            // ns 参数存在时，通常不显示伪装页面，除非特定 ns 需要
+        } else {
+            const routeInfo = routeByHosts(hostTopForRouting);
+            hub_host_for_upstream = routeInfo[0];
+            shouldServeFakePage = routeInfo[1];
+        }
+        console.log(`Worker: ${clientFacingWorkerHostname}, Routing based on: ${hostTopForRouting}, Upstream target: ${hub_host_for_upstream}, Serve fake page: ${shouldServeFakePage}`);
 
-		// 修改包含 %2F 和 %3A 的请求
-		if (!/%2F/.test(url.search) && /%3A/.test(url.toString())) {
-			let modifiedUrl = url.toString().replace(/%3A(?=.*?&)/, '%3Alibrary%2F');
-			url = new URL(modifiedUrl);
-			console.log(`handle_url: ${url}`);
-		}
 
-		// 处理token请求
-		if (url.pathname.includes('/token')) {
-			let token_parameter = {
-				headers: {
-					'Host': 'auth.docker.io',
-					'User-Agent': getReqHeader("User-Agent"),
-					'Accept': getReqHeader("Accept"),
-					'Accept-Language': getReqHeader("Accept-Language"),
-					'Accept-Encoding': getReqHeader("Accept-Encoding"),
-					'Connection': 'keep-alive',
-					'Cache-Control': 'max-age=0'
-				}
-			};
-			let token_url = auth_url + url.pathname + url.search;
-			return fetch(new Request(token_url, request), token_parameter);
-		}
+        // 伪装页面/爬虫处理 (与之前类似)
+        const userAgentHeader = request.headers.get('User-Agent');
+        const userAgent = userAgentHeader ? userAgentHeader.toLowerCase() : "null";
+        if (env.UA) 屏蔽爬虫UA = 屏蔽爬虫UA.concat(await ADD(env.UA)); // 假设 ADD 函数已定义
 
-		// 修改 /v2/ 请求路径
-		if (hub_host == 'registry-1.docker.io' && /^\/v2\/[^/]+\/[^/]+\/[^/]+$/.test(url.pathname) && !/^\/v2\/library/.test(url.pathname)) {
-			//url.pathname = url.pathname.replace(/\/v2\//, '/v2/library/');
-			url.pathname = '/v2/library/' + url.pathname.split('/v2/')[1];
-			console.log(`modified_url: ${url.pathname}`);
-		}
+        if (屏蔽爬虫UA.some(fxxk => userAgent.includes(fxxk)) && 屏蔽爬虫UA.length > 0) {
+            return new Response(await nginx(), { headers: { 'Content-Type': 'text/html; charset=UTF-8' }});
+        }
+        // 浏览器访问首页时的处理 (与之前类似)
+        const hubParamsForBrowser = ['/v1/search', '/v1/repositories']; // 假设这些是浏览器API路径
+        if ((userAgent && userAgent.includes('mozilla')) || hubParamsForBrowser.some(param => requestUrlObject.pathname.includes(param))) {
+            if (requestUrlObject.pathname === '/') {
+                if (env.URL302) return Response.redirect(env.URL302, 302);
+                if (env.URL) {
+                    if (env.URL.toLowerCase() === 'nginx') return new Response(await nginx(), { headers: { 'Content-Type': 'text/html; charset=UTF-8' }});
+                    return fetch(new Request(env.URL, request)); // 代理到指定URL
+                }
+                if (shouldServeFakePage) return new Response(await searchInterface(), { headers: { 'Content-Type': 'text/html; charset=UTF-8' }});
+                // 如果没有特定首页逻辑且不是伪装页面，可能需要一个默认行为或错误
+            } else {
+                // 处理浏览器API请求，可能需要将主机名改为 hub.docker.com (如果 fakePage 为 true 且目标是docker hub)
+                // let browserApiTargetUrl = new URL(requestUrlObject);
+                // if (shouldServeFakePage) browserApiTargetUrl.hostname = 'hub.docker.com'; // 示例
+                // return fetch(new Request(browserApiTargetUrl, request));
+                // 保持原有逻辑，但确保响应头被 finalizeHeadersForClient 处理（如果适用）
+            }
+        }
 
-		// 构造请求参数
-		let parameter = {
-			headers: {
-				'Host': hub_host,
-				'User-Agent': getReqHeader("User-Agent"),
-				'Accept': getReqHeader("Accept"),
-				'Accept-Language': getReqHeader("Accept-Language"),
-				'Accept-Encoding': getReqHeader("Accept-Encoding"),
-				'Connection': 'keep-alive',
-				'Cache-Control': 'max-age=0'
-			},
-			cacheTtl: 3600 // 缓存时间
-		};
 
-		// 添加Authorization头
-		if (request.headers.has("Authorization")) {
-			parameter.headers.Authorization = getReqHeader("Authorization");
-		}
+        // 处理 token 请求 (发往 worker 的 /token 路径)
+        if (requestUrlObject.pathname.includes('/token')) {
+            const tokenServiceUrl = new URL(auth_url); // e.g. https://auth.docker.io
+            let actualTokenProviderUrl = `${auth_url}${requestUrlObject.pathname.substring('/token'.length)}${requestUrlObject.search}`;
+            // 确保 /token 被正确拼接
+            if (!requestUrlObject.pathname.startsWith('/token/')) { // 如果是 /token?service=...
+                 actualTokenProviderUrl = `${auth_url}/token${requestUrlObject.search}`;
+            } else { // 如果是 /token/auth?... (某些 registry 可能有子路径)
+                 actualTokenProviderUrl = `${auth_url}${requestUrlObject.pathname.substring('/token'.length)}${requestUrlObject.search}`;
+            }
 
-		// 添加可能存在字段X-Amz-Content-Sha256
-		if (request.headers.has("X-Amz-Content-Sha256")) {
-			parameter.headers['X-Amz-Content-Sha256'] = getReqHeader("X-Amz-Content-Sha256");
-		}
 
-		// 发起请求并处理响应
-		let original_response = await fetch(new Request(url, request), parameter);
-		let original_response_clone = original_response.clone();
-		let original_text = original_response_clone.body;
-		let response_headers = original_response.headers;
-		let new_response_headers = new Headers(response_headers);
-		let status = original_response.status;
+            console.log(`[TokenHandler] Client requested token from Worker. Forwarding to actual provider: ${actualTokenProviderUrl}`);
+            const tokenRequestHeaders = new Headers(request.headers);
+            tokenRequestHeaders.set('Host', tokenServiceUrl.hostname); 
+            // 其他需要的头，如 User-Agent, Accept 等，可以从原始请求中复制
+            
+            const tokenResponse = await fetch(new Request(actualTokenProviderUrl, new Request(request, { headers: tokenRequestHeaders })));
+            // Token 响应通常是 JSON，不需要 Www-Authenticate 重写，但 CORS 头可能需要
+            const finalTokenResponseHeaders = finalizeHeadersForClient(tokenResponse.headers, clientFacingWorkerHostname, auth_url);
+            return new Response(tokenResponse.body, { status: tokenResponse.status, headers: finalTokenResponseHeaders });
+        }
 
-		// 修改 Www-Authenticate 头
-		if (new_response_headers.get("Www-Authenticate")) {
-			let auth = new_response_headers.get("Www-Authenticate");
-			let re = new RegExp(auth_url, 'g');
-			new_response_headers.set("Www-Authenticate", response_headers.get("Www-Authenticate").replace(re, workers_url));
-		}
+        // 准备发往上游 (hub_host_for_upstream) 的请求
+        let upstreamTargetUrl = new URL(requestUrlObject);
+        upstreamTargetUrl.hostname = hub_host_for_upstream;
 
-		// 处理重定向
-		if (new_response_headers.get("Location")) {
-			const location = new_response_headers.get("Location");
-			console.info(`Found redirection location, redirecting to ${location}`);
-			return httpHandler(request, location, hub_host);
-		}
+        // Docker Hub 特有的路径修改 (/v2/library/...)
+        if (hub_host_for_upstream === 'registry-1.docker.io' && 
+            /^\/v2\/[^/]+\/[^/]+\/[^/]+$/.test(upstreamTargetUrl.pathname) && 
+            !/^\/v2\/library/.test(upstreamTargetUrl.pathname)) {
+            upstreamTargetUrl.pathname = '/v2/library/' + upstreamTargetUrl.pathname.substring('/v2/'.length);
+            console.log(`[PathRewrite] Modified path for Docker Hub: ${upstreamTargetUrl.pathname}`);
+        }
+        
+        const upstreamRequestHeaders = new Headers(request.headers);
+        upstreamRequestHeaders.set('Host', hub_host_for_upstream);
+        // 可以选择性地删除或添加一些头
+        // upstreamRequestHeaders.delete('cf-...'); // 删除 Cloudflare 特有的头
 
-		// 返回修改后的响应
-		let response = new Response(original_text, {
-			status,
-			headers: new_response_headers
-		});
-		return response;
-	}
+        const upstreamRequest = new Request(upstreamTargetUrl.toString(), new Request(request, { headers: upstreamRequestHeaders }));
+        
+        console.log(`[MainFetch] Forwarding request to upstream: ${upstreamRequest.url}`);
+        let upstreamResponse = await fetch(upstreamRequest);
+
+        // 检查上游是否重定向
+        const locationFromUpstream = upstreamResponse.headers.get("Location");
+        if (locationFromUpstream && (upstreamResponse.status === 301 || upstreamResponse.status === 302 || upstreamResponse.status === 307 || upstreamResponse.status === 308)) {
+            console.log(`[MainFetch] Upstream ${hub_host_for_upstream} redirected to: ${locationFromUpstream}. Handling with httpHandler.`);
+            // `request` 是原始客户端请求
+            // `locationFromUpstream` 是重定向目标
+            // `hub_host_for_upstream` 是发出重定向的主机
+            // `clientFacingWorkerHostname` 是 worker 自己的主机名
+            // `auth_url` 是全局的 auth_url
+            return httpHandler(request, locationFromUpstream, hub_host_for_upstream, clientFacingWorkerHostname, auth_url);
+        }
+
+        // 如果不是重定向，或者重定向已被 httpHandler 最终处理完毕并返回到这里（不应该），
+        // 则处理当前 upstreamResponse 的头并返回给客户端。
+        console.log(`[MainFetch] Received response from upstream ${hub_host_for_upstream}. Status: ${upstreamResponse.status}. Finalizing headers.`);
+        const finalHeaders = finalizeHeadersForClient(upstreamResponse.headers, clientFacingWorkerHostname, auth_url);
+        return new Response(upstreamResponse.body, {
+            status: upstreamResponse.status,
+            headers: finalHeaders
+        });
+    }
 };
 
 /**
- * 处理HTTP请求
- * @param {Request} req 请求对象
- * @param {string} pathname 请求路径
- * @param {string} baseHost 基地址
+ * 处理 HTTP 请求重定向的辅助函数
+ * @param {Request} originalClientRequest - 原始的客户端请求对象
+ * @param {string} locationUrlFromRedirect - 从上游 Location 头获取的 URL (可能是相对或绝对路径)
+ * @param {string} hostThatIssuedRedirect - 发出重定向的上游主机名 (e.g., "docker.n8n.io")
+ * @param {string} clientFacingWorkerHostname - 当前 Worker 的主机名
+ * @param {string} globalAuthUrlToRewrite - 全局的认证URL主机部分 (e.g., "https://auth.docker.io")
  */
-function httpHandler(req, pathname, baseHost) {
-	const reqHdrRaw = req.headers;
+async function httpHandler(originalClientRequest, locationUrlFromRedirect, hostThatIssuedRedirect, clientFacingWorkerHostname, globalAuthUrlToRewrite) {
+    console.log(`[httpHandler] Processing redirect. Original client request: ${originalClientRequest.url}, Location: ${locationUrlFromRedirect}, Issued by: ${hostThatIssuedRedirect}`);
 
-	// 处理预检请求
-	if (req.method === 'OPTIONS' &&
-		reqHdrRaw.has('access-control-request-headers')
-	) {
-		return new Response(null, PREFLIGHT_INIT);
-	}
+    if (originalClientRequest.method === 'OPTIONS' && originalClientRequest.headers.has('access-control-request-headers')) {
+        return new Response(null, PREFLIGHT_INIT);
+    }
 
-	let rawLen = '';
+    let targetUrlForNextHop;
+    try {
+        //尝试将 locationUrlFromRedirect 解析为绝对 URL
+        targetUrlForNextHop = new URL(locationUrlFromRedirect);
+    } catch (e) {
+        // 如果是相对路径，则基于发出重定向的主机来构建
+        targetUrlForNextHop = new URL(locationUrlFromRedirect, `https://${hostThatIssuedRedirect}`);
+    }
+    
+    const nextHopRequestHeaders = new Headers(originalClientRequest.headers);
+    nextHopRequestHeaders.set('Host', targetUrlForNextHop.hostname); // 设置 Host 为重定向目标的主机
+    // nextHopRequestHeaders.delete("Authorization"); // 根据原始逻辑删除 Authorization，S3 修复？
 
-	const reqHdrNew = new Headers(reqHdrRaw);
+    // 使用原始请求的方法和主体，但使用新的 URL 和头
+    const nextHopRequest = new Request(targetUrlForNextHop.toString(), new Request(originalClientRequest, { headers: nextHopRequestHeaders }));
+    
+    if (nextHopRequest.headers.has("Authorization")) {
+        console.log(`[httpHandler] Forwarding to ${nextHopRequest.url} WITH Authorization header (token type: ${nextHopRequest.headers.get("Authorization").split(" ")[0]})`);
+    } else {
+        console.log(`[httpHandler] Forwarding to ${nextHopRequest.url} WITHOUT Authorization header.`);
+    }
+    const responseFromNextHop = await fetch(nextHopRequest);
 
-	reqHdrNew.delete("Authorization"); // 修复s3错误
-
-	const refer = reqHdrNew.get('referer');
-
-	let urlStr = pathname;
-
-	const urlObj = newUrl(urlStr, 'https://' + baseHost);
-
-	/** @type {RequestInit} */
-	const reqInit = {
-		method: req.method,
-		headers: reqHdrNew,
-		redirect: 'follow',
-		body: req.body
-	};
-	return proxy(urlObj, reqInit, rawLen);
+    // 再次检查是否又有重定向
+    const locationFromNextHop = responseFromNextHop.headers.get("Location");
+    if (locationFromNextHop && (responseFromNextHop.status === 301 || responseFromNextHop.status === 302 || responseFromNextHop.status === 307 || responseFromNextHop.status === 308)) {
+        console.log(`[httpHandler] Chained redirect from ${targetUrlForNextHop.hostname} to: ${locationFromNextHop}. Calling httpHandler again.`);
+        // 递归调用 httpHandler 处理新的重定向
+        // 注意：hostThatIssuedRedirect 现在是 targetUrlForNextHop.hostname
+        return httpHandler(originalClientRequest, locationFromNextHop, targetUrlForNextHop.hostname, clientFacingWorkerHostname, globalAuthUrlToRewrite);
+    }
+    
+    // 如果没有更多重定向，处理响应头并返回
+    console.log(`[httpHandler] Received response from redirected target ${targetUrlForNextHop.hostname}. Status: ${responseFromNextHop.status}. Finalizing headers.`);
+    const finalHeaders = finalizeHeadersForClient(responseFromNextHop.headers, clientFacingWorkerHostname, globalAuthUrlToRewrite);
+    return new Response(responseFromNextHop.body, {
+        status: responseFromNextHop.status,
+        headers: finalHeaders
+    });
 }
 
 /**
@@ -646,9 +685,8 @@ async function proxy(urlObj, reqInit, rawLen) {
 }
 
 async function ADD(envadd) {
-	var addtext = envadd.replace(/[	 |"'\r\n]+/g, ',').replace(/,+/g, ',');	// 将空格、双引号、单引号和换行符替换为逗号
-	if (addtext.charAt(0) == ',') addtext = addtext.slice(1);
-	if (addtext.charAt(addtext.length - 1) == ',') addtext = addtext.slice(0, addtext.length - 1);
-	const add = addtext.split(',');
-	return add;
+    var addtext = envadd.replace(/[ \t|"'\r\n]+/g, ',').replace(/,+/g, ',');
+    if (addtext.startsWith(',')) addtext = addtext.substring(1);
+    if (addtext.endsWith(',')) addtext = addtext.slice(0, -1);
+    return addtext.split(',');
 }
