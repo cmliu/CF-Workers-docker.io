@@ -472,7 +472,12 @@ export default {
 					});
 				}
 			} else {
-				if (fakePage) url.hostname = 'hub.docker.com';
+				// 新增逻辑：/v1/ 路径特殊处理
+				if (url.pathname.startsWith('/v1/')) {
+					url.hostname = 'index.docker.io';
+				} else if (fakePage) {
+					url.hostname = 'hub.docker.com';
+				}
 				if (url.searchParams.get('q')?.includes('library/') && url.searchParams.get('q') != 'library/') {
 					const search = url.searchParams.get('q');
 					url.searchParams.set('q', search.replace('library/', ''));
@@ -511,6 +516,76 @@ export default {
 			//url.pathname = url.pathname.replace(/\/v2\//, '/v2/library/');
 			url.pathname = '/v2/library/' + url.pathname.split('/v2/')[1];
 			console.log(`modified_url: ${url.pathname}`);
+		}
+
+		// 新增：/v2/、/manifests/、/blobs/、/tags/ 先获取token再请求
+		if (
+			url.pathname.startsWith('/v2/') &&
+			(
+				url.pathname.includes('/manifests/') ||
+				url.pathname.includes('/blobs/') ||
+				url.pathname.includes('/tags/')
+				|| url.pathname.endsWith('/tags/list')
+			)
+		) {
+			// 提取镜像名
+			let repo = '';
+			const v2Match = url.pathname.match(/^\/v2\/(.+?)(?:\/(manifests|blobs|tags)\/)/);
+			if (v2Match) {
+				repo = v2Match[1];
+			}
+			if (repo) {
+				const tokenUrl = `${auth_url}/token?service=registry.docker.io&scope=repository:${repo}:pull`;
+				const tokenRes = await fetch(tokenUrl, {
+					headers: {
+						'User-Agent': getReqHeader("User-Agent"),
+						'Accept': getReqHeader("Accept"),
+						'Accept-Language': getReqHeader("Accept-Language"),
+						'Accept-Encoding': getReqHeader("Accept-Encoding"),
+						'Connection': 'keep-alive',
+						'Cache-Control': 'max-age=0'
+					}
+				});
+				const tokenData = await tokenRes.json();
+				const token = tokenData.token;
+				let parameter = {
+					headers: {
+						'Host': hub_host,
+						'User-Agent': getReqHeader("User-Agent"),
+						'Accept': getReqHeader("Accept"),
+						'Accept-Language': getReqHeader("Accept-Language"),
+						'Accept-Encoding': getReqHeader("Accept-Encoding"),
+						'Connection': 'keep-alive',
+						'Cache-Control': 'max-age=0',
+						'Authorization': `Bearer ${token}`
+					},
+					cacheTtl: 3600
+				};
+				if (request.headers.has("X-Amz-Content-Sha256")) {
+					parameter.headers['X-Amz-Content-Sha256'] = getReqHeader("X-Amz-Content-Sha256");
+				}
+				let original_response = await fetch(new Request(url, request), parameter);
+				let original_response_clone = original_response.clone();
+				let original_text = original_response_clone.body;
+				let response_headers = original_response.headers;
+				let new_response_headers = new Headers(response_headers);
+				let status = original_response.status;
+				if (new_response_headers.get("Www-Authenticate")) {
+					let auth = new_response_headers.get("Www-Authenticate");
+					let re = new RegExp(auth_url, 'g');
+					new_response_headers.set("Www-Authenticate", response_headers.get("Www-Authenticate").replace(re, workers_url));
+				}
+				if (new_response_headers.get("Location")) {
+					const location = new_response_headers.get("Location");
+					console.info(`Found redirection location, redirecting to ${location}`);
+					return httpHandler(request, location, hub_host);
+				}
+				let response = new Response(original_text, {
+					status,
+					headers: new_response_headers
+				});
+				return response;
+			}
 		}
 
 		// 构造请求参数
