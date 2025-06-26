@@ -5,6 +5,10 @@ let hub_host = 'registry-1.docker.io';
 // Docker认证服务器地址
 const auth_url = 'https://auth.docker.io';
 
+const FREE_DOMAINS = [
+	'r2.cloudflarestorage.com',
+];
+
 let 屏蔽爬虫UA = ['netcraft'];
 
 // 根据主机名选择对应的上游地址
@@ -630,8 +634,19 @@ export default {
 		// 处理重定向
 		if (new_response_headers.get("Location")) {
 			const location = new_response_headers.get("Location");
-			console.info(`Found redirection location, redirecting to ${location}`);
-			return httpHandler(request, location, hub_host);
+			console.info(`Found redirection location ${location}`);
+			let freeDomain = false;
+			for (const domain of FREE_DOMAINS) {
+				if (location.match('\\b' + domain + '\\b')) {
+					freeDomain = true;
+					console.log(`Free domain ${domain}, redirect as is.`);
+					break;
+				}
+			}
+			if (!freeDomain) {
+				console.log('Not free domain, re-executing...');
+				return httpHandler(request, location, hub_host);
+			}
 		}
 
 		// 返回修改后的响应
